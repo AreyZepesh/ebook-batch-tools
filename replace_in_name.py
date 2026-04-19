@@ -8,12 +8,13 @@ def rename_file(
         file_path: PathMapping, 
         find_what: list[str], 
         replace_with: str = "",  
-        **kwargs): # -> tuple[str]:
+        **kwargs) -> bool:
     """Переименовывает файл, заменяя одно на другое, \n
     Например: 'Книга.fb2.zip' станет 'Книга.zip' \n
     file_path: путь к архиву \n
     find_what: список, что изменить \n
-    replace_with: строка, на которую заменяется\n"""
+    replace_with: строка, на которую заменяется\n
+    Возвращает статус: были изменения и итог подтвержден (в данном случае файлы существуют)"""
     # обходим по одной строки, которые нужно заменить
     for find_str in find_what:
         # проверка наличия такой строки
@@ -21,10 +22,14 @@ def rename_file(
             # заменяем слова в конечном пути
             file_path.replace_in_dst_stem(find_str, replace_with)
 
-    dst_path = file_path.transfer()
+    dst_path = file_path
+    if file_path.should_transfer():
+        dst_path = file_path.transfer()
+        print(f"{file_path} >>> {dst_path}")
+        return file_path.exists() and dst_path.exists()
+    return False
 
-    print(f"{file_path} >>> {dst_path}")
-    # return (str(file_path), str(dst_path))
+
 
 def run(input_dir: str, 
         output_dir: str = None,
@@ -53,7 +58,7 @@ def main():
 
     run(
         input_dir = input_dir,
-        # output_dir = output_dir,
+        output_dir = output_dir,
         need_copy = False,
         accept_file_ext_to_change = accept_file_ext_to_change,
 

@@ -45,6 +45,9 @@ class PathMapping(Path):
     def _is_src_same_dst(self):
         return self.src_path.resolve(strict=False) == self._dst_path.resolve(strict=False)
     
+    def should_transfer(self):
+        return not self._is_src_same_dst()
+
     def should_delete_source(self):
         # print(f"{self.src_path.resolve(strict=False)=}\n{self._dst_path.resolve(strict=False)=}")
         # print(f"{self._is_src_same_dst()=}")
@@ -68,15 +71,22 @@ class PathMapping(Path):
 
         if dst_path.exists():
             # print(f"Файл уже сушествует: {dst_path}")
-            dst_path = dst_path.with_stem(dst_path.stem + "_new")
+            dst_path = dst_path.with_stem(dst_path.stem + "_copy")
         if dst_path.exists():
             # print(f"Файл уже сушествует: {dst_path}")
             dst_path = dst_path.with_stem(dst_path.stem + f"_{dt.now().strftime("%Y%m%d%H%M%S")}")
 
         return dst_path
     
+    def remove(self):
+        os.remove(self.src_path)
 
-    def copy(self, target):
+    def copy(self, target: Path):
+        # if not target.exists() or not os.path.samefile(self, target):
+        #     shutil.copy(self, target)
+        # else:
+        #     print(f"Тот же файл: {target}")
+        #     raise shutil.SameFileError
         shutil.copy(self, target)
 
     def transfer(self) -> Path:
@@ -87,11 +97,13 @@ class PathMapping(Path):
         # создаем папку, если её нет
         dst_path.parent.mkdir(parents=True, exist_ok=True)
         # копируем, если надо - иначе переносим
-        if self.need_copy_to_dst:
-            self.copy(dst_path)
-        else:
-            self.replace(dst_path)
+        # if self.need_copy_to_dst:
+        #     self.copy(dst_path)
+        # else:
+        #     self.replace(dst_path)
+        # переделываю под логику удаление в одном месте
 
+        self.copy(dst_path)
         return dst_path
 
 
@@ -113,9 +125,15 @@ def walk_and_edit(
             continue
         if output_dir:
             file_path.remap_dst_path(input_dir,output_dir)
+
         file_path.need_copy_to_dst = need_copy
-        action_func(file_path = file_path,
-                    **func_kwargs or {})
+
+        change_confirmed = action_func(file_path = file_path,
+                                **func_kwargs or {})
+        
+        if change_confirmed and not need_copy:
+            file_path.remove()
+            print(f"!   Удален исходный файл: {file_path}")
         
 
 

@@ -1,11 +1,10 @@
 from common import (
     os, zipfile, traceback, tempfile,
-    PathMapping,
+    Path, PathMapping,
     walk_and_edit, 
         )
 
 def rename_single_root_to_archive_name(file_path: PathMapping, 
-                                       accept_file_ext_to_change: list = [".zip"],
                                        **kwargs):
     # TODO разделить логику? 
     # отдельную функцию когда только один файл, и отдельную для папки? 
@@ -14,12 +13,7 @@ def rename_single_root_to_archive_name(file_path: PathMapping,
     # а открытие архивов функцией ниже
     # TODO если весть log для реверсивной обработки:
     # в лог изменений сохранять (src_path, изначальное_корневое_имя, новое_корневое_имя, dst_path)
-
-
-    # обрабатываются только zip
-    if file_path.suffix not in accept_file_ext_to_change:
-        return
-
+    
     # Создаем временный архив 
     tmp_fd, temp_path = tempfile.mkstemp(
         prefix="tmp_",
@@ -51,7 +45,7 @@ def rename_single_root_to_archive_name(file_path: PathMapping,
                 return
             
             # эээ... чет я уже не помню, зачем такая конструкция
-            # TODO codex, чем обоснована строчка, в контексте остальной функции, как думаешь?
+            # достаем элемент из set, возможно явнее будет через pop?
             root_item = next(iter(root_items))
             # Делим корневой элемент на имя и расширение
             root_stem, root_suffix = os.path.splitext(root_item)
@@ -94,9 +88,9 @@ def rename_single_root_to_archive_name(file_path: PathMapping,
                     zip_write.writestr(zinfo_or_arcname = item, data = data)
 
         # Кэшируем
-        dst_path = file_path.dst_path
+        dst_path: Path = file_path.dst_path
         # создаем папку, если её нет
-        dst_path.parent.mkdir(exist_ok=True)
+        dst_path.parent.mkdir(parents=True, exist_ok=True)
         # переносим временный файл в конечную точку 
         temp_path.replace(dst_path)
         print(f"        >>> {dst_path}")
