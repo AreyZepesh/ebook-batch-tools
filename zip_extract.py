@@ -4,8 +4,8 @@ from common import (
     walk_and_edit, 
         )
 
-def _verify_extracted_files(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
-    # верификация
+def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
+    """Верификация содержимого извлеченного контента"""
     for member, ext_path in extracted:
         if member.is_dir():
             continue
@@ -17,16 +17,20 @@ def _verify_extracted_files(zfile: zipfile.ZipFile, extracted: list[tuple[str]])
                 return False
     return True
 
-def _exists_extracted_files(extracted: list[tuple[str]]) -> bool:
+def _all_extracted_paths_exist(extracted: list[tuple[str]]) -> bool:
+    """Проверка существования извлеченного контента"""
     for _, ext_file_path in extracted:
         if not Path(ext_file_path).exists():
             return False
     return True
 
-def _extract(file_path: PathMapping, 
+def _extract_archive(file_path: PathMapping, 
              dst_path: Path|PathMapping, 
              zip_filename_encoding = None,
-             verify_extracted = False,):
+             verify_extracted = False,) -> bool:
+    """Непосредственная распаковка файлов из архива \n
+     Возвращает статус: была распаковка и итог подтвержден 
+    (в данном случае файлы существуют или верефицированны)"""
     extracted = []
     try:
         with zipfile.ZipFile(file_path, 'r',
@@ -41,8 +45,8 @@ def _extract(file_path: PathMapping,
                 print(f"  {member.filename} >>> {ext_path}")
 
             if verify_extracted:
-                return _verify_extracted_files(zfile, extracted)
-            return _exists_extracted_files(extracted)
+                return _verify_extracted_contents(zfile, extracted)
+            return _all_extracted_paths_exist(extracted)
 
     except zipfile.BadZipFile:
         print(f"ERROR: Битый архив, пропускаем: {file_path}")
@@ -55,19 +59,21 @@ def _extract(file_path: PathMapping,
 def zip_extract(file_path: PathMapping, 
                 zip_filename_encoding = None,
                 verify_extracted = False,
-                **kwargs):
-    """извлекает архивы в ту же папку, либо её копию в другом месте. \n
+                **kwargs) -> bool:
+    """Извлечение файлов из архива в ту же папку, 
+    либо её копию в другом месте (с сохранением структуры дерева). \n
     zip_filename_encoding: может быть cp437, cp866, cp1251, utf-8 \n
-    verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве """
+    verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве \n
+    Возвращает статус: были изменения и итог подтвержден 
+    (в данном случае файлы существуют или верефицированны)"""
 
     dst_path = file_path.dst_path.parent
-    extract_complete = _extract(file_path = file_path,
+    extract_confirmed  = _extract_archive(file_path = file_path,
                                 dst_path = dst_path,
                                 zip_filename_encoding = zip_filename_encoding,
-                                verify_extracted = verify_extracted,
-                                )
+                                verify_extracted = verify_extracted)
 
-    return extract_complete
+    return extract_confirmed 
 
 def run(input_dir: str, 
         output_dir: str = None,
@@ -95,8 +101,8 @@ def main():
 
     run(
         input_dir = input_dir, 
-        # output_dir = output_dir,
-        need_copy = False,
+        output_dir = output_dir,
+        # need_copy = False,
         accept_file_ext_to_change = accept_file_ext_to_change,
 
         zip_filename_encoding = "cp866",

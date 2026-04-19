@@ -26,6 +26,14 @@ class PathMapping(Path):
         self._dst_path = self._dst_path.with_stem(
             self._dst_path.stem.replace(find_what, replace_with)
             )
+    
+    def set_dst_stem(self, new_stem):
+        self._dst_path = self._dst_path.with_stem(new_stem)
+        return self._dst_path
+        
+    def set_dst_suffix(self, new_suffix):
+        self._dst_path = self._dst_path.with_suffix(new_suffix)
+        return self._dst_path
 
     @property
     def dst_path(self):
@@ -49,16 +57,11 @@ class PathMapping(Path):
         return not self._is_src_same_dst()
 
     def should_delete_source(self):
-        # print(f"{self.src_path.resolve(strict=False)=}\n{self._dst_path.resolve(strict=False)=}")
-        # print(f"{self._is_src_same_dst()=}")
-        # print(f"{self.need_copy_to_dst=}")
-        # print(f"{self.src_path.exists()=}")
         if self._is_src_same_dst():
             return False
         if self.need_copy_to_dst:
             return False
         return self.src_path.exists()
-
 
     def get_destination_path(self, ignore_exists = False):
         dst_path = self._dst_path
@@ -70,10 +73,8 @@ class PathMapping(Path):
             return dst_path
 
         if dst_path.exists():
-            # print(f"Файл уже сушествует: {dst_path}")
             dst_path = dst_path.with_stem(dst_path.stem + "_copy")
         if dst_path.exists():
-            # print(f"Файл уже сушествует: {dst_path}")
             dst_path = dst_path.with_stem(dst_path.stem + f"_{dt.now().strftime("%Y%m%d%H%M%S")}")
 
         return dst_path
@@ -82,27 +83,14 @@ class PathMapping(Path):
         os.remove(self.src_path)
 
     def copy(self, target: Path):
-        # if not target.exists() or not os.path.samefile(self, target):
-        #     shutil.copy(self, target)
-        # else:
-        #     print(f"Тот же файл: {target}")
-        #     raise shutil.SameFileError
         shutil.copy(self, target)
 
     def transfer(self) -> Path:
         """Перемещение или копирование в dst_path \n
         Возращает конечный путь"""
         dst_path: Path = self.dst_path
-
         # создаем папку, если её нет
         dst_path.parent.mkdir(parents=True, exist_ok=True)
-        # копируем, если надо - иначе переносим
-        # if self.need_copy_to_dst:
-        #     self.copy(dst_path)
-        # else:
-        #     self.replace(dst_path)
-        # переделываю под логику удаление в одном месте
-
         self.copy(dst_path)
         return dst_path
 

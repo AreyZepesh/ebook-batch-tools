@@ -22,11 +22,12 @@ def rename_file(
             # заменяем слова в конечном пути
             file_path.replace_in_dst_stem(find_str, replace_with)
 
-    dst_path = file_path
+    # dst_path = file_path
     if file_path.should_transfer():
         dst_path = file_path.transfer()
         print(f"{file_path} >>> {dst_path}")
-        return file_path.exists() and dst_path.exists()
+        # return file_path.exists() and dst_path.exists()
+        return dst_path.exists()
     return False
 
 
