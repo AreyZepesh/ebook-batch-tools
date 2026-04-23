@@ -7,6 +7,7 @@ import os
 import zipfile
 import traceback
 import tempfile
+from dataclasses import dataclass, field
 
 class PathMapping(Path):
     def __init__(self, *args):
@@ -53,6 +54,9 @@ class PathMapping(Path):
     def _is_src_same_dst(self):
         return self.src_path.resolve(strict=False) == self._dst_path.resolve(strict=False)
     
+    def src_is_same(self, target):
+        return self.src_path.resolve(strict=False) == Path(target).resolve(strict=False)
+    
     def should_transfer(self):
         return not self._is_src_same_dst()
 
@@ -94,8 +98,13 @@ class PathMapping(Path):
         self.copy(dst_path)
         return dst_path
 
+@dataclass
+class ActionResult():
+    change_confirmed: bool = field(default=False)
+    safe_to_remove_source: bool = field(default=False)
 
-
+    def can_remove_source(self):
+        return self.change_confirmed and self.safe_to_remove_source
 
 def walk_and_edit(
         input_dir: str | Path, 
@@ -116,10 +125,10 @@ def walk_and_edit(
 
         file_path.need_copy_to_dst = need_copy
 
-        change_confirmed = action_func(file_path = file_path,
+        action_result: ActionResult = action_func(file_path = file_path,
                                 **func_kwargs or {})
         
-        if change_confirmed and not need_copy:
+        if action_result.can_remove_source(): # and not need_copy:
             file_path.remove()
             print(f"!   Удален исходный файл: {file_path}")
         

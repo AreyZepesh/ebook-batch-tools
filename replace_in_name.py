@@ -1,6 +1,6 @@
 from common import (
     # os, zipfile, traceback, tempfile,
-    PathMapping,
+    PathMapping, ActionResult,
     walk_and_edit, 
         )
 
@@ -8,13 +8,14 @@ def rename_file(
         file_path: PathMapping, 
         find_what: list[str], 
         replace_with: str = "",  
-        **kwargs) -> bool:
+        **kwargs) -> ActionResult:
     """Переименовывает файл, заменяя одно на другое, \n
     Например: 'Книга.fb2.zip' станет 'Книга.zip' \n
     file_path: путь к архиву \n
     find_what: список, что изменить \n
     replace_with: строка, на которую заменяется\n
     Возвращает статус: были изменения и итог подтвержден (в данном случае файлы существуют)"""
+    rename_confirmed = False
     # обходим по одной строки, которые нужно заменить
     for find_str in find_what:
         # проверка наличия такой строки
@@ -22,13 +23,13 @@ def rename_file(
             # заменяем слова в конечном пути
             file_path.replace_in_dst_stem(find_str, replace_with)
 
-    # dst_path = file_path
+    dst_path = file_path.dst_path
     if file_path.should_transfer():
         dst_path = file_path.transfer()
         print(f"{file_path} >>> {dst_path}")
-        # return file_path.exists() and dst_path.exists()
-        return dst_path.exists()
-    return False
+        rename_confirmed = dst_path.exists()
+
+    return ActionResult(change_confirmed=rename_confirmed, safe_to_remove_source=file_path.should_delete_source())
 
 
 
@@ -59,7 +60,7 @@ def main():
 
     run(
         input_dir = input_dir,
-        output_dir = output_dir,
+        # output_dir = output_dir,
         need_copy = False,
         accept_file_ext_to_change = accept_file_ext_to_change,
 

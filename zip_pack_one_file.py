@@ -1,6 +1,6 @@
 from common import (
     zipfile, traceback, Path,
-    PathMapping,
+    PathMapping, ActionResult,
     walk_and_edit, 
         )
 
@@ -43,7 +43,7 @@ def _pack_archive(file_path: PathMapping,
 def pack_to_zip(file_path: PathMapping,
                 verify_packed = False,
                 save_suffix_in_name = False,
-                **kwargs) -> bool:
+                **kwargs) -> ActionResult:
     """Создание архива на основе одного файла в ту же папку, 
     либо в другом месте (с сохранением структуры дерева). \n
     verify_packed: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве \n
@@ -65,7 +65,7 @@ def pack_to_zip(file_path: PathMapping,
     if pack_confirmed:
         print(f"Успешно запаковано: {file_path} >>> {dst_path}")
 
-    return pack_confirmed
+    return ActionResult(change_confirmed=pack_confirmed, safe_to_remove_source=file_path.should_delete_source())
 
 
 def run(input_dir: str, 

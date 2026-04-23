@@ -1,6 +1,6 @@
 from common import (
     zipfile, traceback,
-    Path, PathMapping,
+    Path, PathMapping, ActionResult,
     walk_and_edit, 
         )
 
@@ -27,7 +27,7 @@ def _all_extracted_paths_exist(extracted: list[tuple[str]]) -> bool:
 def _extract_archive(file_path: PathMapping, 
              dst_path: Path|PathMapping, 
              zip_filename_encoding = None,
-             verify_extracted = False,) -> bool:
+             verify_extracted = True,) -> bool:
     """Непосредственная распаковка файлов из архива \n
      Возвращает статус: была распаковка и итог подтвержден 
     (в данном случае файлы существуют или верефицированны)"""
@@ -58,8 +58,8 @@ def _extract_archive(file_path: PathMapping,
 
 def zip_extract(file_path: PathMapping, 
                 zip_filename_encoding = None,
-                verify_extracted = False,
-                **kwargs) -> bool:
+                verify_extracted = True,
+                **kwargs) -> ActionResult:
     """Извлечение файлов из архива в ту же папку, 
     либо её копию в другом месте (с сохранением структуры дерева). \n
     zip_filename_encoding: может быть cp437, cp866, cp1251, utf-8 \n
@@ -73,7 +73,8 @@ def zip_extract(file_path: PathMapping,
                                 zip_filename_encoding = zip_filename_encoding,
                                 verify_extracted = verify_extracted)
 
-    return extract_confirmed 
+    return ActionResult(change_confirmed=extract_confirmed, 
+            safe_to_remove_source=verify_extracted and extract_confirmed and not file_path.need_copy_to_dst)
 
 def run(input_dir: str, 
         output_dir: str = None,
@@ -81,7 +82,7 @@ def run(input_dir: str,
         accept_file_ext_to_change: list = [".zip"], 
 
         zip_filename_encoding=None,
-        verify_extracted=False,
+        verify_extracted=True,
             ) -> None:
     """Запуск основной функции модуля"""
     walk_and_edit(
@@ -102,11 +103,11 @@ def main():
     run(
         input_dir = input_dir, 
         output_dir = output_dir,
-        # need_copy = False,
+        need_copy = False,
         accept_file_ext_to_change = accept_file_ext_to_change,
 
         zip_filename_encoding = "cp866",
-        verify_extracted = False
+        # verify_extracted = False
         )
 
 if __name__  == '__main__':
