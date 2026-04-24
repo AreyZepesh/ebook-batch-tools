@@ -35,6 +35,12 @@ class PathMapping(Path):
     def set_dst_suffix(self, new_suffix):
         self._dst_path = self._dst_path.with_suffix(new_suffix)
         return self._dst_path
+    
+    def get_dst_stem(self) -> str:
+        return self._dst_path.stem
+    
+    def dst_stem_changed(self) -> str:
+        return self.src_path.stem != self._dst_path.stem
 
     @property
     def dst_path(self):

@@ -19,9 +19,6 @@ def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
 def _get_single_root_item(zip_read: zipfile.ZipFile) -> str | None:
     """Получаем корневой элемент в архиве, если больше одного - None"""
     namelist = [name.replace("\\", "/") for name in zip_read.namelist()]
-    # Делаем сет для контроля количества элементов в корне 
-    # отрабатываются только архивы с одной папкой или файлом 
-    # изначально функция разрабатывалось только под один файл, но выросла... а надо ли? !???!
     root_items = {
             name.split("/", 1)[0]
             for name in namelist
@@ -29,11 +26,8 @@ def _get_single_root_item(zip_read: zipfile.ZipFile) -> str | None:
                 }
     
     if len(root_items) != 1:
-        # Если в корне больше одного элемента - возращаем None
-        return
+        return None
     
-    # эээ... чет я уже не помню, зачем такая конструкция
-    # достаем элемент из set, возможно явнее будет через pop?
     return root_items.pop()
 
 def _build_renamed_member_path(old_path: str, root_item: str, archive_stem: str, root_suffix: str) -> str:
@@ -73,29 +67,32 @@ def _rewrite_archive(
 def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
     """Непосредственная работа с архивом \n
      Возвращает путь: что именно переместить в конечную точку"""
+    target_archive_stem = file_path.stem
+    if file_path.dst_stem_changed():
+        target_archive_stem = file_path.get_dst_stem()
     # Открываем исходный файл
     with zipfile.ZipFile(file_path, "r") as zip_read:
+        print(f"\n{file_path}:")
         root_item = _get_single_root_item(zip_read)
         if root_item is None:
             # Если в корне больше одного элемента - возращаем ощибку и завершаем функцию
-            print(f"Больше одного файла/папки в корне: {file_path}")
+            print(f"   Больше одного файла/папки в корне")
             return None
         
         # Делим корневой элемент на имя и расширение
         root_stem, root_suffix = os.path.splitext(root_item)
         
         # Если "Имя файла/папки в корне идентично имени архива" - завершаем функцию
-        if root_stem == file_path.stem:
-            print(f"Имя файла/папки в корне идентично имени архива: {file_path}")
+        if root_stem == target_archive_stem:
+            print(f"   Имя файла/папки в корне идентично конечному имени архива: {target_archive_stem}")
             return file_path
         
-        print(f"\n{file_path}:")
         temp_path = _create_temp_zip_near(file_path)
 
         _rewrite_archive(
                     zip_read=zip_read,
                     temp_path=temp_path,
-                    archive_stem=file_path.stem,
+                    archive_stem=target_archive_stem,
                     root_item=root_item,
                     root_suffix=root_suffix,
                         )
@@ -104,10 +101,8 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
 
 def rename_single_root_to_archive_name(file_path: PathMapping, **kwargs) -> ActionResult:
     """
-
-    # TODO если весть log для реверсивной обработки:
-    # в лог изменений сохранять (src_path, изначальное_корневое_имя, новое_корневое_имя, dst_path)
     """
+    
     temp_path = None
     action_result = ActionResult()
     try:
