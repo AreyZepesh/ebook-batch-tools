@@ -124,6 +124,9 @@ def walk_and_edit(
     for file_path in PathMapping(input_dir).glob("**/*"):
         if not file_path.is_file():
             continue
+
+        # if accept_file_ext_to_change and len(accept_file_ext_to_change) > 0 : 
+        # NOTE если нужно проходить все файлы, если не указано расширение
         if not file_path.suffix in accept_file_ext_to_change:
             continue
         if output_dir:
@@ -134,9 +137,11 @@ def walk_and_edit(
         action_result: ActionResult = action_func(file_path = file_path,
                                 **func_kwargs or {})
         
+        if not isinstance(action_result, ActionResult):
+            raise Exception(f"Функция {action_func.__name__} вернула None")
+        
         if action_result.can_remove_source(): # and not need_copy:
             file_path.remove()
             print(f"!   Удален исходный файл: {file_path}")
         
-
 
