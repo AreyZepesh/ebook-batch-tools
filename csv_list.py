@@ -84,8 +84,8 @@ def main():
     # FileInfo.need_tag_dublicates = False
 
     with open("./list.csv", "a", 
-              encoding="utf8"
-            #   encoding="cp1251"
+            #   encoding="utf8"
+              encoding="cp1251"
               ) as file:
         csv_out = csv.writer(file, delimiter=";", lineterminator="\n")
         
