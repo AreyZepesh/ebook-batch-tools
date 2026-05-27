@@ -40,7 +40,7 @@ def main():
     run(
         input_dir = input_dir,
         output_dir = output_dir,
-        need_copy = False,
+        # need_copy = False,
         accept_file_ext_to_change = accept_file_ext_to_change,
 
         find_what_replaced = find_what_replaced,

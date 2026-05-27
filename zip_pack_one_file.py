@@ -88,8 +88,9 @@ def run(input_dir: str,
 
 def main():
     input_dir = "D:\\Книги\\_update"
+    input_dir = "D:\Книги\По новому (выборка) (2026-05-27)"
     output_dir = "D:\\Книги\\_update2"
-    accept_file_ext_to_change = [".fb2"]
+    accept_file_ext_to_change = [".fb2", ".epub"]
 
     run(
         input_dir = input_dir, 
