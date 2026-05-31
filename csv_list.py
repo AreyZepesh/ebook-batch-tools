@@ -1,59 +1,57 @@
-from pathlib import Path
 import csv
 import json
+# import re
+from pathlib import Path
 from datetime import datetime as dt
-from typing import Any
+
          
 class BookFile():
-    #TODO привязать к реализации данные колонки
     columns = [ 
-    ("is_recommended", "⭐"),
-    ("filefolder", "Автор(ы)/Межавторский цикл"),
-    ("filename", "Название файла"),
-    ("is_readed", "Прочитано"),
-    ("is_in_reading", "В процессе"),
-    ("is_in_droped", "Брошено"),
-    ("is_in_paper", "Есть бумажная"),
-    ("tags", "tag"),
-    ("paths", "pathes"),
-    ("url", "URL на фантлабе"),
+    ("is_recommended","⭐"),
+    ("author_folder","Автор(ы)/Межавторский цикл"),
+    ("filename","Название файла"),
+    ("is_read","Прочитано"),
+    ("is_reading","В процессе"),
+    ("is_dropped","Брошено"),
+    ("has_paper_copy","Есть бумажная"),
+    ("tags","Тэги"),
+    ("paths","Пути"),
+    ("fantlab_url","URL на фантлабе"),
+    # ("", ""),
+    # ("genres", "Жанры"),
+    # ("description", "Описание")
         ]
     
     def __init__(self, filename, path):
         # type(self).all_files[]
-        self.is_recommended = False #0
-        self.filefolder = "" #1
-        self.filename = filename #2
-        self.is_readed = False #3
-        self.is_in_reading = False #4
-        self.is_in_droped = False #5
-        self.is_in_paper = False #6
-        self.tags = [] #7
-        self.paths = [] #8
-        self.url = "" #9
-        # self.filename = Attr(value=filename, header='Название файла', priority=2)
-        # self.path = Attr(value=path, header='Пути', priority=8)
-        # self. = Attr(value=, header='', priority=)
-        
+        self.is_recommended = False
+        self.author_folder = ""
+        self.filename = filename
+        self.is_read = False
+        self.is_reading = False
+        self.is_dropped = False
+        self.has_paper_copy = False
+        self.tags = []
+        self.paths = []
+        self.fantlab_url = ""
         self.update_from_path(path)
-
 
     def update_from_path(self, new_path):
         path = Path(new_path)
         self.add_path(str(path))
         parts = path.parts
-        self.update_filefolder(parts[-1])
+        self.update_author_folder (parts[-1])
         self.add_tag(parts[0])
 
-    def update_filefolder(self, new_filefolder):
-        if self.filefolder == "":
-            self.filefolder = new_filefolder
-        elif self.filefolder == new_filefolder:
+    def update_author_folder (self, new_author_folder ):
+        if self.author_folder == "":
+            self.author_folder = new_author_folder 
+        elif self.author_folder == new_author_folder :
             pass
-        elif self.filefolder in new_filefolder or new_filefolder in self.filefolder:
-            self.filefolder = self.filefolder if len(self.filefolder) > len(new_filefolder) else new_filefolder
-        elif self.filefolder != new_filefolder:
-            self.filefolder += f"\n{new_filefolder}"
+        elif self.author_folder  in new_author_folder  or new_author_folder  in self.author_folder :
+            self.author_folder = self.author_folder  if len(self.author_folder ) > len(new_author_folder ) else new_author_folder 
+        elif self.author_folder  != new_author_folder :
+            self.author_folder  += f"\n{new_author_folder }"
 
             
     def add_tag(self, tag):
@@ -64,36 +62,31 @@ class BookFile():
         if path not in self.paths:
             self.paths.append(path)
 
-    def get_list_from_table_row(self):
-        #TODO уйти от этого чтения и подключить серилизацию json
-        # json.dumps(self.paths/tags, ensure_ascii=False)
-        # return self.__dict__.items()
-        return list(self.__dict__.values())
+    def _value_for_table(self, attr_name):
+        value = getattr(self, attr_name, "")
+        if attr_name == "fantlab_url" and not value:
+            title = self.filename.split(". ")[-1]
+            # title = re.sub(r"\d()", "", title)
+            title = title.strip()
+            return f"https://fantlab.ru/search/?searchstr={title}"
+        if isinstance(value, list):
+            return json.dumps(value, ensure_ascii=False)
+
+        return value
+    
+    def get_table_row(self) -> list:
+        return [self._value_for_table(attr_name) for attr_name, _ in self.columns]
     
     @classmethod
-    def _get_table_header(cls) -> tuple:
-        return tuple([
-            '⭐',#0.encode().decode('cp1251'), 
-            'Автор(ы)/Межавторский цикл', #1 последний part пути
-            'Название файла', #2 filename
-            'Прочитано', #3 bool
-            'В процессе', #4 bool
-            'Брошено', #5 bool
-            'Есть бумажная', #6 bool
-            'tag', #7 первая после рута часть пути
-            'pathes', #8 список/сет путей
-            'URL на фантлабе', #9 https://fantlab.ru/search/?searchstr= + filemane/автор
-            # '',
-            # 'Жанры', # экспорты из старых только, либо делать парсящую функцию,
-            # 'Описание',
-                ])
+    def get_table_header(cls) -> tuple:
+        return tuple([header for _, header in cls.columns])
 
 
 def main():
     filepath = f"./csv/{dt.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
 
     input_dir = Path("D:/Книги/По новому (выборка)")
-    accept_file_ext = [".fb2", ".epub", ".pdf", ".zip"]
+    accept_file_ext = [".fb2",".epub",".pdf",".zip"]
 
     library = {}
 
@@ -114,9 +107,9 @@ def main():
                 library[filename] = BookFile( filename, rel_path )
 
 
-    with open(filepath, "a", encoding="utf-8-sig") as file:
-        csv_out = csv.writer(file, delimiter=";", lineterminator="\n")
-        csv_out.writerow(BookFile._get_table_header())
+    with open(filepath,"a", encoding= "utf-8-sig") as file:
+        csv_out = csv.writer(file, delimiter= ";", lineterminator= "\n")
+        csv_out.writerow(BookFile.get_table_header())
         for item in library.values():
             csv_out.writerow( 
                 item.get_list_from_table_row()
@@ -124,5 +117,5 @@ def main():
         
 
 
-if __name__  == '__main__':
+if __name__ == '__main__':
     main()
