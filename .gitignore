@@ -1,6 +1,6 @@
 */*
 **/__pycache__/*
-note.md
+note*.md
 test*.*
 *.db
 *.env

@@ -98,8 +98,8 @@ def run(input_dir: str,
 def main():
     input_dir = "D:\\Книги\\_update"
     output_dir = "D:\\Книги\\_update2"
-    input_dir = "D:\\Книги\\По новому (выборка) (2026-05-27)"
-    output_dir = "G:\\Книги"
+    # input_dir = "D:\\Книги\\По новому (выборка) (2026-05-27)"
+    # output_dir = "I:\\Книги\\"
     accept_file_ext_to_change = [".zip"]
 
     run(

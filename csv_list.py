@@ -1,110 +1,128 @@
-from common import (
-    os, zipfile, traceback, tempfile,
-    PathMapping, ActionResult, Path, 
-    dataclass, field,
-        )
+from pathlib import Path
 import csv
-
-
-class FileInfo():
-    all_filenames = []
-    max_parts_in_path = 0
-    need_tag_dublicates: bool = True
-
-    def __init__(self, path_parts: tuple[str], filename: str, ):
-        self.path_parts = path_parts
-        self.filename = filename
-        self.is_dublicate = False
-
-        self._class_var_update()
-
-    def _class_var_update(self):
-        if self.filename not in type(self).all_filenames:
-            type(self).all_filenames.append(self.filename)
-        else:
-            self.is_dublicate = True
-
-        type(self).max_parts_in_path = max(len(self.path_parts), type(self).max_parts_in_path)
-
-    def get_as_tuple_from_csv(self, space_before: bool = False, first_part_in_first_space: bool = False) -> tuple[str]:
-        """Возвращает tuple для формирования строки в csv. \n
-        Добавляет пустые ячейки в промежутки до частей пути или после, но до имени файла. \n
-        space_before: будут ли пустые ячейки до частей пути, или нет. Иначе - после, но до имени файла \n
-        first_part_in_first_space: работает только при space_before = True. Переносит первую часть пути в первую пустую ячейку. """
-        ratio = type(self).max_parts_in_path - len(self.path_parts)
-        path_parts = self.path_parts
-        # print(f"{ratio=} {self.path_parts=}")
-        if space_before:
-            self.path_parts = ('',)*ratio + path_parts
-            if first_part_in_first_space:
-                self.path_parts = (path_parts[0],) + ('',)*ratio + tuple(path_parts[1:])
-                # print(f"   {ratio=} {self.path_parts=}")
-                # import time
-                # time.sleep(10)
-        else:
-            self.path_parts = path_parts + ('',)*ratio
-
-        tag = tuple()
-        if type(self).need_tag_dublicates:
-            tag += (self.is_dublicate if self.is_dublicate else "",)
-        return self.path_parts + (self.filename,) + tag
-
-    @classmethod
-    def _get_csv_header(cls):
-        tag = tuple()
-        if cls.need_tag_dublicates:
-            tag += ('is_dublicate',)
-
-        if cls.max_parts_in_path >= 1:
-            return ('folder',) + ('subfolder',)*(cls.max_parts_in_path-1) + ('filename',) + tag
-        else:
-            return  ('filename',) + tag
+import json
+from datetime import datetime as dt
+from typing import Any
          
+class BookFile():
+    #TODO привязать к реализации данные колонки
+    columns = [ 
+    ("is_recommended", "⭐"),
+    ("filefolder", "Автор(ы)/Межавторский цикл"),
+    ("filename", "Название файла"),
+    ("is_readed", "Прочитано"),
+    ("is_in_reading", "В процессе"),
+    ("is_in_droped", "Брошено"),
+    ("is_in_paper", "Есть бумажная"),
+    ("tags", "tag"),
+    ("paths", "pathes"),
+    ("url", "URL на фантлабе"),
+        ]
+    
+    def __init__(self, filename, path):
+        # type(self).all_files[]
+        self.is_recommended = False #0
+        self.filefolder = "" #1
+        self.filename = filename #2
+        self.is_readed = False #3
+        self.is_in_reading = False #4
+        self.is_in_droped = False #5
+        self.is_in_paper = False #6
+        self.tags = [] #7
+        self.paths = [] #8
+        self.url = "" #9
+        # self.filename = Attr(value=filename, header='Название файла', priority=2)
+        # self.path = Attr(value=path, header='Пути', priority=8)
+        # self. = Attr(value=, header='', priority=)
+        
+        self.update_from_path(path)
 
+
+    def update_from_path(self, new_path):
+        path = Path(new_path)
+        self.add_path(str(path))
+        parts = path.parts
+        self.update_filefolder(parts[-1])
+        self.add_tag(parts[0])
+
+    def update_filefolder(self, new_filefolder):
+        if self.filefolder == "":
+            self.filefolder = new_filefolder
+        elif self.filefolder == new_filefolder:
+            pass
+        elif self.filefolder in new_filefolder or new_filefolder in self.filefolder:
+            self.filefolder = self.filefolder if len(self.filefolder) > len(new_filefolder) else new_filefolder
+        elif self.filefolder != new_filefolder:
+            self.filefolder += f"\n{new_filefolder}"
+
+            
+    def add_tag(self, tag):
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    def add_path(self, path: str):
+        if path not in self.paths:
+            self.paths.append(path)
+
+    def get_list_from_table_row(self):
+        #TODO уйти от этого чтения и подключить серилизацию json
+        # json.dumps(self.paths/tags, ensure_ascii=False)
+        # return self.__dict__.items()
+        return list(self.__dict__.values())
+    
+    @classmethod
+    def _get_table_header(cls) -> tuple:
+        return tuple([
+            '⭐',#0.encode().decode('cp1251'), 
+            'Автор(ы)/Межавторский цикл', #1 последний part пути
+            'Название файла', #2 filename
+            'Прочитано', #3 bool
+            'В процессе', #4 bool
+            'Брошено', #5 bool
+            'Есть бумажная', #6 bool
+            'tag', #7 первая после рута часть пути
+            'pathes', #8 список/сет путей
+            'URL на фантлабе', #9 https://fantlab.ru/search/?searchstr= + filemane/автор
+            # '',
+            # 'Жанры', # экспорты из старых только, либо делать парсящую функцию,
+            # 'Описание',
+                ])
 
 
 def main():
-    input_dir = "D:\\Книги\\_update"
-    input_dir = "D:\\Книги\\По новому (выборка) (2026-04-21)"
+    filepath = f"./csv/{dt.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
 
-    if os.path.exists("./list.csv"):
-        os.remove("./list.csv")
+    input_dir = Path("D:/Книги/По новому (выборка)")
+    accept_file_ext = [".fb2", ".epub", ".pdf", ".zip"]
 
-    items = []
+    library = {}
 
-    
-    
-    for dirpath, _, filenames in Path(input_dir).walk():
-        for filename in filenames:
-            items.append(FileInfo(dirpath.relative_to(input_dir).parts, filename))
+    # for dirpath, _, filenames in Path(input_dir).walk():
+    #     for filename in filenames:
+    #         if Path(filename).suffix in accept_file_ext:
+    #             items.append(
+    #                 BookFile( filename, dirpath.relative_to(input_dir) )
+    #                 )
 
-    # for item in items:
-    #     print(item)
+    for file_path in Path(input_dir).glob("**/*"):
+        if file_path.suffix in accept_file_ext:
+            filename = file_path.stem
+            rel_path = file_path.parent.relative_to(input_dir)
+            if filename in library:
+                library[filename].update_from_path(rel_path)
+            else:
+                library[filename] = BookFile( filename, rel_path )
 
-    # FileInfo.need_tag_dublicates = False
 
-    with open("./list.csv", "a", 
-            #   encoding="utf8"
-              encoding="cp1251"
-              ) as file:
+    with open(filepath, "a", encoding="utf-8-sig") as file:
         csv_out = csv.writer(file, delimiter=";", lineterminator="\n")
+        csv_out.writerow(BookFile._get_table_header())
+        for item in library.values():
+            csv_out.writerow( 
+                item.get_list_from_table_row()
+                ) 
         
-        csv_out.writerow(FileInfo._get_csv_header())
-        for item in items:
-            item: FileInfo = item
-            csv_out.writerow( item.get_as_tuple_from_csv(
-                # space_before = True, 
-                # first_part_in_first_space = True,
-                ) )
 
-# ок, просто список с выравниванием по правому краю работает
-# что еще хотел?
-#+ метку дубликата, по имени файла 
-#+- без выравнивания, или с дубликатом первой папки с первой пустой ячейчи  - выравнивание либо влево, либо вправо
-
-# обновление файла, не трогая уже имеющиеся, и помечая на удаление отсутвующие, новые в конец добавлять
-# для этого нужно сперва чтение файла и путей из него
-# словари по имени файлов со списками - путями? много памяти, зато можно помечать новые пить для таких же имен... а вот как помечать пути, которых теперь нет?
 
 if __name__  == '__main__':
     main()
