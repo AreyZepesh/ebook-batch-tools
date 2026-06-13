@@ -7,20 +7,34 @@ from datetime import datetime as dt
          
 class BookFile():
     columns = [ 
-    ("is_recommended","⭐"),
+    ("is_recommended","⭐"), #H
     ("author_folder","Автор(ы)/Межавторский цикл"),
     ("filename","Название файла"),
-    ("is_read","Прочитано"),
-    ("is_reading","В процессе"),
-    ("is_dropped","Брошено"),
-    ("has_paper_copy","Есть бумажная"),
+    ("is_read","Прочитано"), #H
+    ("is_reading","В процессе"), #H
+    ("is_dropped","Брошено"), #H
+    ("has_paper_copy","Есть бумажная"), #H
     ("tags","Тэги"),
-    ("paths","Пути"),
     ("fantlab_url","URL на фантлабе"),
-    # ("", ""),
+    # ("handle_tags", "Мои Тэги"), #H
     # ("genres", "Жанры"),
     # ("description", "Описание")
+    ("paths","Пути"),
+    ("old_paths","Старые пути"),
+    ("status","Статус"), # "new" / "ok" / "moved" / "missing"
         ]
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        book = cls.__new__(cls)
+        for attr_name, attr_desc in cls.columns:
+            value = data.get(attr_desc, 
+                             data.get(attr_name, ""),
+                             )
+            setattr(book, attr_name, 
+                    cls._value_from_table(attr_name, value),
+                    )
+        return book
     
     def __init__(self, filename, path):
         # type(self).all_files[]
@@ -52,7 +66,6 @@ class BookFile():
             self.author_folder = self.author_folder  if len(self.author_folder ) > len(new_author_folder ) else new_author_folder 
         elif self.author_folder  != new_author_folder :
             self.author_folder  += f"\n{new_author_folder }"
-
             
     def add_tag(self, tag):
         if tag not in self.tags:
@@ -69,17 +82,53 @@ class BookFile():
             # title = re.sub(r"\d()", "", title)
             title = title.strip()
             return f"https://fantlab.ru/search/?searchstr={title}"
+        
         if isinstance(value, list):
             return json.dumps(value, ensure_ascii=False)
-
+        
         return value
     
+    @classmethod
+    def _value_from_table(cls, attr_name: str, value: str):
+        if attr_name in ("tags", "paths"):
+            if not value:
+                return []
+            try:
+                return json.loads(value)
+            except:
+            # except json.JSONDecodeError as e:
+                print("Не получилось декодировать JSON строку, возвращаю как есть")
+                print(value)
+                return value
+
+        # if attr_name in ("is_recommended", "is_read", "is_reading", "is_dropped", "has_paper_copy"):
+        # возможно так будет безопаснее, но с другой стороны - кто юзает тру/фолс в чистом виде?
+        if value.upper() == "True".upper():
+            return True
+        if value.upper() == "False".upper():
+            return False
+
+        return value
+
     def get_table_row(self) -> list:
         return [self._value_for_table(attr_name) for attr_name, _ in self.columns]
     
     @classmethod
     def get_table_header(cls) -> tuple:
         return tuple([header for _, header in cls.columns])
+
+def save_to_csv(csv_path, data: list):
+    with open(csv_path,"w", encoding= "utf-8-sig") as file:
+        csv_out = csv.writer(file, delimiter= ";", lineterminator= "\n")
+        csv_out.writerow(BookFile.get_table_header())
+        for item in data:
+            csv_out.writerow( 
+                item.get_table_row()
+                ) 
+
+def load_from_csv(csv_path):
+    with open(csv_path, "r", encoding= "utf-8-sig") as file:
+        return [BookFile.from_dict(x) for x in csv.DictReader(file, delimiter= ";")]
 
 
 def main():
@@ -90,13 +139,6 @@ def main():
 
     library = {}
 
-    # for dirpath, _, filenames in Path(input_dir).walk():
-    #     for filename in filenames:
-    #         if Path(filename).suffix in accept_file_ext:
-    #             items.append(
-    #                 BookFile( filename, dirpath.relative_to(input_dir) )
-    #                 )
-
     for file_path in Path(input_dir).glob("**/*"):
         if file_path.suffix in accept_file_ext:
             filename = file_path.stem
@@ -106,15 +148,13 @@ def main():
             else:
                 library[filename] = BookFile( filename, rel_path )
 
+    save_to_csv(filepath, library.values())
 
-    with open(filepath,"a", encoding= "utf-8-sig") as file:
-        csv_out = csv.writer(file, delimiter= ";", lineterminator= "\n")
-        csv_out.writerow(BookFile.get_table_header())
-        for item in library.values():
-            csv_out.writerow( 
-                item.get_list_from_table_row()
-                ) 
-        
+    old_lib = load_from_csv(filepath)
+    print(old_lib[0].__dict__)
+    print(
+        type(old_lib[0].tags)
+          )
 
 
 if __name__ == '__main__':
