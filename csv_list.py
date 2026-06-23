@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import json
 # import re
 from pathlib import Path
@@ -90,16 +90,15 @@ class BookFile():
     
     @classmethod
     def _value_from_table(cls, attr_name: str, value: str):
-        if attr_name in ("tags", "paths"):
+        if attr_name in ("tags", "paths", "old_paths"):
             if not value:
                 return []
             try:
                 return json.loads(value)
-            except:
-            # except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 print("Не получилось декодировать JSON строку, возвращаю как есть")
                 print(value)
-                return value
+                return [value]
 
         # if attr_name in ("is_recommended", "is_read", "is_reading", "is_dropped", "has_paper_copy"):
         # возможно так будет безопаснее, но с другой стороны - кто юзает тру/фолс в чистом виде?
