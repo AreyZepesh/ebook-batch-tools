@@ -16,27 +16,28 @@ def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
     os.close(tmp_fd)  # ZipFile сам откроет путь
     return PathMapping(temp_path)
 
-def _get_single_root_item(zip_read: zipfile.ZipFile) -> str | None:
-    """Получаем корневой элемент в архиве, если больше одного - None"""
-    namelist = [name.replace("\\", "/") for name in zip_read.namelist()]
-    root_items = {
-            name.split("/", 1)[0]
-            for name in namelist
-            if name.strip("/")
-                }
-    
+def _get_single_root_item(zip_read: zipfile.ZipFile) -> tuple[str, bool] | None:
+    """Возвращает (root_item, is_dir) или None, если корней больше одного"""
+    infos = zip_read.infolist()
+    namelist = [(info.filename.replace("\\", "/"), info.is_dir()) for info in infos]
+
+    root_items = {name.split("/", 1)[0] for name, _ in namelist if name.strip("/")}
     if len(root_items) != 1:
         return None
-    
-    return root_items.pop()
+
+    root_item = root_items.pop()
+    # это папка, если для root_item нет отдельной файловой записи
+    is_dir = not any(name == root_item and not is_d for name, is_d in namelist)
+    return root_item, is_dir
 
 def _build_renamed_member_path(old_path: str, root_item: str, archive_stem: str, root_suffix: str) -> str:
     """Переименовываем только корневой (высокоуровневый) элемент в архиве.
     \nRename only the top-level root item inside archive."""
-    if old_path == root_item:
+    normalized = old_path.replace("\\", "/")
+    if normalized == root_item:
         # обновляем имя корневого файла на имя архива, сохраняя суффикс
         return archive_stem + root_suffix
-    elif old_path.startswith(root_item + "/") or old_path.startswith(root_item + "\\"):
+    elif normalized.startswith(root_item + "/"):
         # обновляем имя корневой папки на имя архива
         return archive_stem + old_path[len(root_item):]
     # теоретически не должно случиться, оставляем как было
@@ -73,14 +74,17 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
     # Открываем исходный файл
     with zipfile.ZipFile(file_path, "r") as zip_read:
         print(f"\n{file_path}:")
-        root_item = _get_single_root_item(zip_read)
+        root_item, root_is_dir = _get_single_root_item(zip_read)
         if root_item is None:
             # Если в корне больше одного элемента - возращаем ощибку и завершаем функцию
             print(f"   Больше одного файла/папки в корне")
             return None
         
-        # Делим корневой элемент на имя и расширение
-        root_stem, root_suffix = os.path.splitext(root_item)
+        # Делим корневой элемент на имя и расширение. Если это папка - не делим)
+        if root_is_dir:
+            root_stem, root_suffix = root_item, ""
+        else:
+            root_stem, root_suffix = os.path.splitext(root_item)
         
         # Если "Имя файла/папки в корне идентично имени архива" - завершаем функцию
         if root_stem == target_archive_stem:

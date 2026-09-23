@@ -16,24 +16,29 @@ class PathMapping(Path):
         self.ignore_exists_dst = False
         self._dst_path = Path(self)
         self.need_copy_to_dst = True
+        self._dst_resolved = False
 
     def remap_dst_path(self, input_dir, output_dir):
         """replace in dst_path"""
         relative = self.relative_to(input_dir)
         self._dst_path = Path(output_dir, relative) 
+        self._dst_resolved = False
 
     def replace_in_dst_stem(self, find_what: str, replace_with: str):
         """replace in dst_path.stem"""
         self._dst_path = self._dst_path.with_stem(
             self._dst_path.stem.replace(find_what, replace_with)
             )
+        self._dst_resolved = False
     
     def set_dst_stem(self, new_stem):
         self._dst_path = self._dst_path.with_stem(new_stem)
+        self._dst_resolved = False
         return self._dst_path
         
     def set_dst_suffix(self, new_suffix):
         self._dst_path = self._dst_path.with_suffix(new_suffix)
+        self._dst_resolved = False
         return self._dst_path
     
     def get_dst_stem(self) -> str:
@@ -45,17 +50,22 @@ class PathMapping(Path):
     @property
     def dst_path(self):
         """lazy resolve\n
-        Resolve and persist final destination path."""
-        self._dst_path = self.get_destination_path(self.ignore_exists_dst)
+        Resolve and persist final destination path.\n
+        Резолвит один раз и кэширует результат."""
+        if not self._dst_resolved:
+            self._dst_path = self.get_destination_path(self.ignore_exists_dst)
+            self._dst_resolved = True
         return self._dst_path
     
     @dst_path.setter
     def dst_path(self, path):
         self._dst_path = Path(path)
+        self._dst_resolved = True
     
     @dst_path.deleter
     def dst_path(self):
         self._dst_path = Path(self)
+        self._dst_resolved = False
 
     def _is_src_same_dst(self):
         return self.src_path.resolve(strict=False) == self._dst_path.resolve(strict=False)
@@ -98,7 +108,7 @@ class PathMapping(Path):
     def transfer(self) -> Path:
         """Перемещение или копирование в dst_path \n
         Возращает конечный путь"""
-        dst_path: Path = self.dst_path
+        dst_path = self.dst_path
         # создаем папку, если её нет
         dst_path.parent.mkdir(parents=True, exist_ok=True)
         self.copy(dst_path)
@@ -121,21 +131,26 @@ def walk_and_edit(
         func_kwargs: dict = None,
             ) -> None:
     
-    for file_path in PathMapping(input_dir).glob("**/*"):
+    accept_ext = {ext.lower() for ext in accept_file_ext_to_change}
+    file_list = list(PathMapping(input_dir).glob("**/*"))
+    for file_path in file_list:
         if not file_path.is_file():
             continue
-
-        # if accept_file_ext_to_change and len(accept_file_ext_to_change) > 0 : 
-        # NOTE если нужно проходить все файлы, если не указано расширение
-        if not file_path.suffix in accept_file_ext_to_change:
+        if file_path.suffix.lower() not in accept_ext:
             continue
         if output_dir:
             file_path.remap_dst_path(input_dir,output_dir)
 
         file_path.need_copy_to_dst = need_copy
 
-        action_result: ActionResult = action_func(file_path = file_path,
+        try:
+            action_result: ActionResult = action_func(file_path = file_path,
                                 **func_kwargs or {})
+        except Exception as ex:
+            # NOTE: FIXME: Общая затычка ошибок, чтоб одна ошибка не руинила цикл
+            print(f"[ERROR] {file_path}) ")
+            print(ex)
+            continue
         
         if not isinstance(action_result, ActionResult):
             raise Exception(f"Функция {action_func.__name__} вернула None")
