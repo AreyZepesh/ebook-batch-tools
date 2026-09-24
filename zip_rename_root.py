@@ -1,8 +1,10 @@
-from common import (
-    os, zipfile, traceback, tempfile,
-    Path, PathMapping, ActionResult,
-    walk_and_edit, 
-        )
+import os
+import zipfile
+import traceback
+import tempfile
+from pathlib import Path
+
+from common import PathMapping, ActionResult, walk_and_edit
 
 def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
     """Создаем временный архив""" 
@@ -105,6 +107,7 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
 
 def rename_single_root_to_archive_name(file_path: PathMapping, **kwargs) -> ActionResult:
     """
+    Имя архива присваивается файлу/папке в архиве, при условии что в корне архива только один объект
     """
     
     temp_path = None
@@ -163,17 +166,3 @@ def run(input_dir: str,
         # func_kwargs = dict(),
         )
 
-def main():
-    input_dir = "D:\\Книги\\_update"
-    output_dir = "D:\\Книги\\_update2"
-    accept_file_ext_to_change = [".zip"]
-
-    run(
-        input_dir = input_dir, 
-        output_dir = output_dir,
-        # need_copy = False,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        )
-
-if __name__  == '__main__':
-    main()

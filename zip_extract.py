@@ -1,8 +1,7 @@
-from common import (
-    zipfile, traceback,
-    Path, PathMapping, ActionResult,
-    walk_and_edit, 
-        )
+import zipfile
+import traceback
+from pathlib import Path
+from common import PathMapping, ActionResult, walk_and_edit
 
 def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
     """Верификация содержимого извлеченного контента"""
@@ -95,25 +94,7 @@ def run(input_dir: str,
                            verify_extracted = verify_extracted ),
         )
 
-def main():
-    input_dir = "D:\\Книги\\_update"
-    output_dir = "D:\\Книги\\_update2"
-    # input_dir = "D:\\Книги\\По новому (выборка) (2026-05-27)"
-    # output_dir = "I:\\Книги\\"
-    accept_file_ext_to_change = [".zip"]
 
-    run(
-        input_dir = input_dir, 
-        output_dir = output_dir,
-        # need_copy = False,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-
-        zip_filename_encoding = "cp866",
-        # verify_extracted = False
-        )
-
-if __name__  == '__main__':
-    main()
 
 # NOTE: не зип файлы не переносятся
 # TODO: копировать не архивы с указанными расширениями?

@@ -1,8 +1,7 @@
-from common import (
-    zipfile, traceback, Path,
-    PathMapping, ActionResult,
-    walk_and_edit, 
-        )
+import zipfile
+import traceback
+from pathlib import Path
+from common import PathMapping, ActionResult, walk_and_edit
 
 def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
     # верификация
@@ -86,20 +85,3 @@ def run(input_dir: str,
                            save_suffix_in_name = save_suffix_in_name),
         )
 
-def main():
-    input_dir = "D:\\Книги\\_update"
-    # input_dir = "D:\Книги\По новому (выборка) (2026-05-27)"
-    output_dir = "D:\\Книги\\_update2"
-    accept_file_ext_to_change = [".fb2", ".epub"]
-
-    run(
-        input_dir = input_dir, 
-        output_dir = output_dir,
-        # need_copy = False,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        verify_packed = True,
-        # save_suffix_in_name = True
-        )
-
-if __name__  == '__main__':
-    main()

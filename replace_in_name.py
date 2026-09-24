@@ -1,8 +1,4 @@
-from common import (
-    # os, zipfile, traceback, tempfile,
-    PathMapping, ActionResult,
-    walk_and_edit, 
-        )
+from common import PathMapping, ActionResult, walk_and_edit
 
 def apply_name_replacements(
     file_path: PathMapping,
@@ -53,7 +49,8 @@ def rename_file(
 def run(input_dir: str, 
         output_dir: str = None,
         need_copy: bool = True,
-        accept_file_ext_to_change: list = [".zip"], 
+        accept_file_ext_to_change: list = [".fb2", ".zip"], 
+
         find_what_replaced: list[str] = [".fb2"], 
         replace_with: str = "", 
             ) -> None:
@@ -67,23 +64,3 @@ def run(input_dir: str,
         func_kwargs = dict(find_what = find_what_replaced,
                        replace_with = replace_with),
         )
-
-def main():
-    input_dir = "D:\\Книги\\_update"
-    output_dir = "D:\\Книги\\_update2"
-    accept_file_ext_to_change = [".fb2", ".zip"]
-    find_what_replaced = [".fb2", ".epub"]
-    replace_with = ""
-
-    run(
-        input_dir = input_dir,
-        output_dir = output_dir,
-        # need_copy = False,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-
-        find_what_replaced = find_what_replaced,
-        replace_with = replace_with,
-        )
-
-if __name__  == '__main__':
-    main()

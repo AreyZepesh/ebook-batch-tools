@@ -4,9 +4,6 @@ from datetime import datetime as dt
 
 # TODO возможно уйти от os к pathlib?
 import os
-import zipfile
-import traceback
-import tempfile
 from dataclasses import dataclass, field
 
 class PathMapping(Path):
@@ -101,6 +98,7 @@ class PathMapping(Path):
     
     def remove(self):
         os.remove(self.src_path)
+        #self.src_path.unlink(missing_ok=True)
 
     def copy(self, target: Path):
         shutil.copy(self, target)
@@ -124,13 +122,15 @@ class ActionResult():
 
 def walk_and_edit(
         input_dir: str | Path, 
-        action_func, 
         output_dir: str | Path | None = None, 
         need_copy: bool = True,
         accept_file_ext_to_change: list = [".zip"],
+
+        action_func = None, 
         func_kwargs: dict = None,
             ) -> None:
-    
+    if action_func is None:
+        raise ValueError("action_func обязателен")
     accept_ext = {ext.lower() for ext in accept_file_ext_to_change}
     file_list = list(PathMapping(input_dir).glob("**/*"))
     for file_path in file_list:
