@@ -5,6 +5,41 @@ from pathlib import Path
 from path_mapping import PathMapping
 from action_result import ActionResult
 
+def guess_metadata_encoding(path, candidates=("cp437", "cp866", "cp1251", "gbk", "shift_jis")):
+    with zipfile.ZipFile(path) as zf:
+        raws = []
+        for i in zf.infolist():
+            if i.flag_bits & 0x800:
+                continue
+            try:
+                raws.append(i.filename.encode("cp437"))
+            except UnicodeEncodeError:
+                raws.append(i.filename.encode("cp866", errors="replace"))
+
+    if not raws:
+        return None  # все имена в UTF-8, metadata_encoding не нужен
+    blob = b"".join(raws)
+    if all(b < 128 for b in blob):
+        return None  # чистый ASCII
+    try:
+        blob.decode("utf-8")
+        return "utf-8"
+    except UnicodeDecodeError:
+        pass
+
+    def score(enc):
+        try:
+            text = blob.decode(enc)
+        except UnicodeDecodeError:
+            return -1
+        # для кириллицы: доля букв среди не-ASCII символов
+        non_ascii = [c for c in text if ord(c) > 127]
+        letters = sum(c.isalpha() for c in non_ascii)
+        lower = sum(("а" <= c <= "я") or c in "ёЁ" for c in non_ascii)
+        return (letters + lower) / max(len(non_ascii), 1)
+
+    return max(candidates, key=score)
+
 def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
     """Верификация содержимого извлеченного контента"""
     for member, ext_path in extracted:
@@ -57,6 +92,7 @@ def _extract_archive(file_path: PathMapping,
         print(f"{traceback.format_exc()}")
         return False
 
+#main
 def zip_extract(file_path: PathMapping, 
                 zip_filename_encoding = None,
                 verify_extracted = True,
@@ -69,6 +105,13 @@ def zip_extract(file_path: PathMapping,
     (в данном случае файлы существуют или верефицированны)"""
 
     dst_path = file_path.dst_path.parent
+    if not zip_filename_encoding:
+        try:
+            zip_filename_encoding = guess_metadata_encoding(file_path)
+            if zip_filename_encoding:
+                print(f"[INFO] в архиве {file_path} определена/угадана кодировка: {zip_filename_encoding}")
+        except Exception:
+            print(f"[WARNING] не удалось определить/угадать кодировку в архиве {file_path}")
     extract_confirmed  = _extract_archive(file_path = file_path,
                                 dst_path = dst_path,
                                 zip_filename_encoding = zip_filename_encoding,
@@ -80,5 +123,3 @@ def zip_extract(file_path: PathMapping,
 
 # NOTE: не зип файлы не переносятся: если нужна копия не зип файла, 
 # то replace_in_name делает это, даже если изменений не было произведено
-
-# TODO FIXME: metadata_encoding потестить, автоматизировать

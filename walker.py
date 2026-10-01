@@ -23,7 +23,7 @@ def walk_and_edit(config: Config) -> None:
         except Exception as ex:
             # NOTE: FIXME: Общая затычка ошибок, чтоб одна ошибка не руинила цикл
             print(f"[ERROR] {file_path}) ")
-            print(ex)
+            print("     ", ex)
             continue
         
         if not isinstance(action_result, ActionResult):

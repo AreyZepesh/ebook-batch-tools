@@ -1,6 +1,4 @@
-﻿from typing import Literal
-
-from config import Action
+﻿from config import Action
 from replace_in_name import rename_file
 from zip_rename_root import rename_single_root_to_archive_name
 from zip_rename_name_and_root import rename_and_sync_root
@@ -39,10 +37,11 @@ def make_zip_rename_name_and_root(
             )
 
 def make_zip_extract(
-        zip_filename_encoding: Literal[None, "cp437", "cp866", "cp1251", "utf-8"] =None, 
+        zip_filename_encoding: str | None = None, 
         verify_extracted=True, 
         **kwargs):
-    """"verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве"""
+    """zip_filename_encoding: может быть cp437, cp866, cp1251, utf-8 и другими кодировками\n
+    verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве"""
     return Action(
         func = zip_extract,
         accept_ext = [".zip"],
