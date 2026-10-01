@@ -3,7 +3,7 @@ import traceback
 from pathlib import Path
 
 from path_mapping import PathMapping
-from walker import ActionResult, walk_and_edit
+from action_result import ActionResult
 
 def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
     # верификация
@@ -67,23 +67,4 @@ def pack_to_zip(file_path: PathMapping,
         print(f"Успешно запаковано: {file_path} >>> {dst_path}")
 
     return ActionResult(change_confirmed=pack_confirmed, safe_to_remove_source=file_path.should_delete_source())
-
-
-def run(input_dir: str, 
-        output_dir: str = None,
-        need_copy: bool = True,
-        accept_file_ext_to_change: list = [".fb2"],
-        verify_packed = False,
-        save_suffix_in_name = False, 
-            ) -> None:
-    """Запуск основной функции модуля"""
-    walk_and_edit(
-        input_dir = input_dir, 
-        action_func = pack_to_zip, 
-        output_dir = output_dir,
-        need_copy = need_copy,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        func_kwargs = dict(verify_packed = verify_packed, 
-                           save_suffix_in_name = save_suffix_in_name),
-        )
 

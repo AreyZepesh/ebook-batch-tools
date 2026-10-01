@@ -3,7 +3,7 @@ import traceback
 from pathlib import Path
 
 from path_mapping import PathMapping
-from walker import ActionResult, walk_and_edit
+from action_result import ActionResult
 
 def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
     """Верификация содержимого извлеченного контента"""
@@ -77,26 +77,8 @@ def zip_extract(file_path: PathMapping,
     return ActionResult(change_confirmed=extract_confirmed, 
             safe_to_remove_source=verify_extracted and extract_confirmed and not file_path.need_copy_to_dst)
 
-def run(input_dir: str, 
-        output_dir: str = None,
-        need_copy: bool = True,
-        accept_file_ext_to_change: list = [".zip"], 
 
-        zip_filename_encoding=None,
-        verify_extracted=True,
-            ) -> None:
-    """Запуск основной функции модуля"""
-    walk_and_edit(
-        input_dir = input_dir, 
-        action_func = zip_extract, 
-        output_dir = output_dir,
-        need_copy = need_copy,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        func_kwargs = dict(zip_filename_encoding = zip_filename_encoding,
-                           verify_extracted = verify_extracted ),
-        )
+# NOTE: не зип файлы не переносятся: если нужна копия не зип файла, 
+# то replace_in_name делает это, даже если изменений не было произведено
 
-
-
-# NOTE: не зип файлы не переносятся
-# TODO: копировать не архивы с указанными расширениями?
+# TODO FIXME: metadata_encoding потестить, автоматизировать

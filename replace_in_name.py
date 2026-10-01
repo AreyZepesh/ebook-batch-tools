@@ -1,5 +1,5 @@
 from path_mapping import PathMapping
-from walker import ActionResult, walk_and_edit
+from action_result import ActionResult
 
 def apply_name_replacements(
     file_path: PathMapping,
@@ -44,24 +44,3 @@ def rename_file(
 
     return ActionResult(change_confirmed=rename_confirmed, 
                         safe_to_remove_source=file_path.should_delete_source())
-
-
-
-def run(input_dir: str, 
-        output_dir: str = None,
-        need_copy: bool = True,
-        accept_file_ext_to_change: list = [".fb2", ".zip"], 
-
-        find_what_replaced: list[str] = [".fb2"], 
-        replace_with: str = "", 
-            ) -> None:
-    """Запуск основной функции модуля"""
-    walk_and_edit(
-        input_dir = input_dir, 
-        action_func = rename_file, 
-        output_dir = output_dir,
-        need_copy = need_copy,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        func_kwargs = dict(find_what = find_what_replaced,
-                       replace_with = replace_with),
-        )

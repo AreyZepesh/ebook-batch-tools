@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 from path_mapping import PathMapping
-from walker import ActionResult, walk_and_edit
+from action_result import ActionResult
 
 def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
     """Создаем временный архив""" 
@@ -14,7 +14,9 @@ def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
         suffix=".zip",
         dir=file_path.parent,  
         # NOTE ? сейчас делает в исходной папке, а надо наверно в целевой
-        # важно: та же ФС для атомарного replace  - говорил ии
+        # та же ФС для атомарного replace 
+        # с другой стороны: иногда целевое устройство - очень медленное, 
+        # сделать флагом?
             )
     os.close(tmp_fd)  # ZipFile сам откроет путь
     return PathMapping(temp_path)
@@ -149,21 +151,3 @@ def rename_single_root_to_archive_name(file_path: PathMapping, **kwargs) -> Acti
         if temp_path and os.path.exists(temp_path):
             if not file_path.src_is_same(temp_path):
                     os.remove(temp_path)
-        
-
-
-def run(input_dir: str, 
-        output_dir: str = None,
-        need_copy: bool = True,
-        accept_file_ext_to_change: list = [".zip"], 
-            ) -> None:
-    """Запуск основной функции модуля"""
-    walk_and_edit(
-        input_dir = input_dir, 
-        action_func = rename_single_root_to_archive_name, 
-        output_dir = output_dir,
-        need_copy = need_copy,
-        accept_file_ext_to_change = accept_file_ext_to_change,
-        # func_kwargs = dict(),
-        )
-

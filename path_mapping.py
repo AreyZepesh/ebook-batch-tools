@@ -1,6 +1,4 @@
-﻿
-# import os
-import shutil
+﻿import shutil
 from pathlib import Path
 from datetime import datetime as dt
 
