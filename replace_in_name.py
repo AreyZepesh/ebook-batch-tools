@@ -1,4 +1,5 @@
-from common import PathMapping, ActionResult, walk_and_edit
+from path_mapping import PathMapping
+from walker import ActionResult, walk_and_edit
 
 def apply_name_replacements(
     file_path: PathMapping,

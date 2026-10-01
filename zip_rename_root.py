@@ -4,7 +4,8 @@ import traceback
 import tempfile
 from pathlib import Path
 
-from common import PathMapping, ActionResult, walk_and_edit
+from path_mapping import PathMapping
+from walker import ActionResult, walk_and_edit
 
 def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
     """Создаем временный архив""" 

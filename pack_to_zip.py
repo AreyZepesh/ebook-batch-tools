@@ -1,7 +1,9 @@
 import zipfile
 import traceback
 from pathlib import Path
-from common import PathMapping, ActionResult, walk_and_edit
+
+from path_mapping import PathMapping
+from walker import ActionResult, walk_and_edit
 
 def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
     # верификация

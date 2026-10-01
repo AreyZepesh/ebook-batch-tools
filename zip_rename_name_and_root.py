@@ -1,4 +1,5 @@
-from common import PathMapping, ActionResult, walk_and_edit
+from path_mapping import PathMapping
+from walker import ActionResult, walk_and_edit
 from replace_in_name import apply_name_replacements
 from zip_rename_root import rename_single_root_to_archive_name
 
