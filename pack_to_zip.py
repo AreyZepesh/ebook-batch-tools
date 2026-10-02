@@ -41,6 +41,7 @@ def _pack_archive(file_path: PathMapping,
         return _verify_packed_file(dst_path, file_path)
     return dst_path.exists()
 
+#main
 def pack_to_zip(file_path: PathMapping,
                 verify_packed = False,
                 save_suffix_in_name = False,

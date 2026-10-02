@@ -6,7 +6,7 @@ from zip_extract import zip_extract
 from pack_to_zip import pack_to_zip
 
 def make_replace_in_name(
-        accept_ext: list = [".fb2", ".epub", ".pdf", ".zip"],
+        accept_ext: tuple = (".fb2", ".epub", ".pdf", ".zip"),
         find_what: str = ".fb2",
         replace_with: str = "",
         **kwargs):
@@ -21,7 +21,7 @@ def make_replace_in_name(
 def make_zip_rename_root(**kwargs):
     return Action(
         func = rename_single_root_to_archive_name,
-        accept_ext = [".zip"],
+        accept_ext = (".zip"),
             )
 
 def make_zip_rename_name_and_root(
@@ -30,7 +30,7 @@ def make_zip_rename_name_and_root(
         **kwargs):
     return Action(
         func = rename_and_sync_root,
-        accept_ext = [".zip"],
+        accept_ext = (".zip"),
         kwargs = dict(
             find_what = find_what,
             replace_with = replace_with )
@@ -44,12 +44,12 @@ def make_zip_extract(
     verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве"""
     return Action(
         func = zip_extract,
-        accept_ext = [".zip"],
+        accept_ext = (".zip"),
         kwargs = dict(zip_filename_encoding = zip_filename_encoding,
                       verify_extracted = verify_extracted )
             )
 
-def make_pack_to_zip(accept_ext: list = [".fb2"],
+def make_pack_to_zip(accept_ext: tuple = (".fb2"),
                             verify_packed: bool = False,
                             save_suffix_in_name: bool = False, 
                             **kwargs):

@@ -1,6 +1,5 @@
-﻿from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Callable, TYPE_CHECKING
+﻿from dataclasses import dataclass, field
+from typing import Callable
 
 from path_mapping import PathMapping
 from action_result import ActionResult
@@ -9,7 +8,7 @@ from action_result import ActionResult
 class Action:
     """Что выполнять на каждом подходящем файле — функция и её аргументы вместе."""
     func: Callable[..., ActionResult]
-    accept_ext: list[str]
+    accept_ext: tuple[str]
     kwargs: dict = field(default_factory=dict)
 
     def __call__(self, file_path: PathMapping) -> ActionResult:

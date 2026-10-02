@@ -107,10 +107,8 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
                         )
         return temp_path
 
-
-def rename_single_root_to_archive_name(file_path: PathMapping,
-                                    #    tmp_near_source: bool = False,
-                                        **kwargs) -> ActionResult:
+#main
+def rename_single_root_to_archive_name(file_path: PathMapping, **kwargs) -> ActionResult:
     """
     Имя архива присваивается файлу/папке в архиве, при условии что в корне архива только один объект
     """

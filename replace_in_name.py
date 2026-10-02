@@ -16,8 +16,8 @@ def apply_name_replacements(
             # заменяем слова в конечном пути
             file_path.replace_in_dst_stem(find_str, replace_with)
     return matched
-    # return file_path
 
+#main
 def rename_file(
         file_path: PathMapping, 
         find_what: list[str], 
