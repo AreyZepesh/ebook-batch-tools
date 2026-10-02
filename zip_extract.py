@@ -40,7 +40,7 @@ def guess_metadata_encoding(path, candidates=("cp437", "cp866", "cp1251", "gbk",
 
     return max(candidates, key=score)
 
-def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str]]) -> bool:
+def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[zipfile.ZipInfo, str]]) -> bool:
     """Верификация содержимого извлеченного контента"""
     for member, ext_path in extracted:
         if member.is_dir():
@@ -53,7 +53,7 @@ def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[str
                 return False
     return True
 
-def _all_extracted_paths_exist(extracted: list[tuple[str]]) -> bool:
+def _all_extracted_paths_exist(extracted: list[tuple[zipfile.ZipInfo, str]]) -> bool:
     """Проверка существования извлеченного контента"""
     for _, ext_file_path in extracted:
         if not Path(ext_file_path).exists():
@@ -61,12 +61,12 @@ def _all_extracted_paths_exist(extracted: list[tuple[str]]) -> bool:
     return True
 
 def _extract_archive(file_path: PathMapping, 
-             dst_path: Path|PathMapping, 
+             dst_path: Path, 
              zip_filename_encoding = None,
              verify_extracted = True,) -> bool:
     """Непосредственная распаковка файлов из архива \n
      Возвращает статус: была распаковка и итог подтвержден 
-    (в данном случае файлы существуют или верефицированны)"""
+    (в данном случае файлы существуют или верифицированы)"""
     extracted = []
     try:
         with zipfile.ZipFile(file_path, 'r',
@@ -102,7 +102,7 @@ def zip_extract(file_path: PathMapping,
     zip_filename_encoding: может быть cp437, cp866, cp1251, utf-8 \n
     verify_extracted: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве \n
     Возвращает статус: были изменения и итог подтвержден 
-    (в данном случае файлы существуют или верефицированны)"""
+    (в данном случае файлы существуют или верифицированы)"""
 
     dst_path = file_path.dst_path.parent
     if not zip_filename_encoding:

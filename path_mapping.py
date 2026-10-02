@@ -37,7 +37,7 @@ class PathMapping(Path):
     def get_dst_stem(self) -> str:
         return self._dst_path.stem
     
-    def dst_stem_changed(self) -> str:
+    def dst_stem_changed(self) -> bool:
         return self.src_path.stem != self._dst_path.stem
 
     @property
@@ -101,7 +101,7 @@ class PathMapping(Path):
 
     def transfer(self) -> Path:
         """Перемещение или копирование в dst_path \n
-        Возращает конечный путь"""
+        Возвращает конечный путь"""
         dst_path = self.dst_path
         # создаем папку, если её нет
         dst_path.parent.mkdir(parents=True, exist_ok=True)

@@ -22,11 +22,11 @@ def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
     return True
 
 def _pack_archive(file_path: PathMapping, 
-             dst_path: Path|PathMapping, 
+             dst_path: Path, 
              verify_packed = False,) -> bool:
     """Непосредственная упаковка файла в архив \n
-     Возвращает статус: была успаковка и итог подтвержден 
-    (в данном случае файлы существуют или верефицированны)"""
+     Возвращает статус: была упаковка и итог подтвержден 
+    (в данном случае файлы существуют или верифицированы)"""
     try:
         with zipfile.ZipFile(dst_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
             # print(f"Пишем: {dst_path}")
@@ -50,7 +50,7 @@ def pack_to_zip(file_path: PathMapping,
     verify_packed: Если нужна дополнительная сверка извлеченного файла, с исходным в архиве \n
     save_suffix_in_name: Если нужно сохранить расширение архивированного файла в имени архива\n
     Возвращает статус: были изменения и итог подтвержден 
-    (в данном случае файлы существуют или верефицированны)"""
+    (в данном случае файлы существуют или верифицированы)"""
     # Порядок важен, если сперва сохранить в переменную, 
     # а потом менять - не будет проверки на дубль названия
     if save_suffix_in_name:
