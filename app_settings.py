@@ -30,6 +30,9 @@ if not INI_PATH.exists():
 
 try:
     _settings.read(INI_PATH, encoding="utf-8")
+    DEBUG = _settings.getboolean("logging", "debug", fallback=False)
+    ENCODING = _settings.get("logging", "encoding", fallback="utf-8-sig") or None 
+    LOG_DIR = BASE_DIR / (_settings.get("paths", "log_dir", fallback="") or "logs")
 except Exception as ex:
     INI_PATH.unlink()
     raise ValueError(
@@ -39,7 +42,3 @@ except Exception as ex:
         f"Перезапустите программу, чтобы создать его заново со значениями по умолчанию."
     ) from ex
 
-
-DEBUG = _settings.getboolean("logging", "debug", fallback=False)
-ENCODING = _settings.get("logging", "encoding", fallback="utf-8-sig") or None 
-LOG_DIR = BASE_DIR / (_settings.get("paths", "log_dir", fallback="") or "logs")

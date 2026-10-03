@@ -34,3 +34,6 @@ def setup_logging(name_log: str = "book_utils") -> logging.Logger:
 
     return logger
 
+def q(value) -> str:
+    """Оборачивает значение в кавычки для читаемости в логах."""
+    return f"'{value}'"
