@@ -1,10 +1,10 @@
 */*
 **/__pycache__/*
-note*.md
-test*.*
 *.db
 *.env
 *.json
-*copy*
-logs
-*.csv
+settings.ini
+settings.ini*
+*/logs/*
+note*.md
+test*.*

@@ -1,39 +1,36 @@
 ﻿import logging
-from datetime import datetime as dt
-from pathlib import Path
+from logging.handlers import TimedRotatingFileHandler
+from app_settings import LOG_DIR, DEBUG, ENCODING
 
-DEBUG = True
+def setup_logging(name_log: str = "book_utils") -> logging.Logger:
+    if not LOG_DIR.exists():
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-start_session = dt.now().strftime("%Y%m%d") # %H%M%S
+    logger = logging.getLogger(name_log)
+    if logger.handlers:
+        return logger
+    
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
 
-log_dir = Path("./logs/")
-if not log_dir.exists():
-    log_dir.mkdir(parents=True, exist_ok=True)
+    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
 
-logger = logging.getLogger("main")
-logger.setLevel(logging.DEBUG)
+    cons_handler = logging.StreamHandler()
+    cons_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+    cons_handler.setFormatter(formatter)
+    logger.addHandler(cons_handler)
 
-formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
+    file_handler = TimedRotatingFileHandler(LOG_DIR/f"{name_log}.log", when="h", encoding=ENCODING, backupCount=24)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
-cons_handler = logging.StreamHandler()
-cons_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-cons_handler.setFormatter(formatter)
-logger.addHandler(cons_handler)
+    if DEBUG:
+        debug_formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(module)s] [%(funcName)s] %(message)s")
+        debug_handler = logging.FileHandler(LOG_DIR/f"{name_log}_debug.log", mode="a", encoding=ENCODING)
+        debug_handler.setLevel(logging.DEBUG)
+        debug_handler.setFormatter(debug_formatter)
+        logger.addHandler(debug_handler)
 
-file_handler = logging.FileHandler(start_session/f"{start_session}.log", mode="a", encoding="utf-8-sig")
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+    return logger
 
-if DEBUG:
-    debug_handler = logging.FileHandler(start_session/f"{start_session}.log", mode="a", encoding="utf-8-sig")
-    debug_handler.setLevel(logging.DEBUG)
-    debug_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] [%(module)s] [%(funcName)s] %(message)s"))
-    logger.addHandler(debug_handler)
-
-
-logger.debug('debug message')
-logger.info('info message')
-logger.warning('warn message')
-logger.error('error message')
-logger.critical('critical message')
