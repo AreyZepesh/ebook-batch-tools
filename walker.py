@@ -2,33 +2,49 @@ from config import Config
 from path_mapping import PathMapping
 from action_result import ActionResult
 
+from logger import setup_logging
+logger = setup_logging()
+
 def walk_and_edit(config: Config) -> None:
     if config.action is None:
+        logger.error("config.action is None")
         raise ValueError("config.action обязателен")
     
+    logger.debug("Конфигурация: %s" % (config.__dict__))
     accept_ext = {ext.lower() for ext in config.action.accept_ext}
+    logger.debug("Разрешенные для обработки расширения: %s" % (accept_ext))
     file_list: list[PathMapping] = list(config.input_dir.glob("**/*"))
+    logger.debug("Объктов (файл/папка) найдено: %i" % len(file_list))
 
     for file_path in file_list:
+        logger.debug("Обработка: %s " % file_path)
         if not file_path.is_file():
+            logger.debug("%s не является файлом" % file_path)
             continue
         if file_path.suffix.lower() not in accept_ext:
+            logger.debug("%s не имеет разрешенного расширения" % file_path)
             continue
         if config.output_dir:
+            logger.debug("Замена %s в целевом пути на %s" % (config.input_dir, config.output_dir) )
             file_path.remap_dst_path(config.input_dir, config.output_dir)
+        logger.debug("Нужна копия с сохранением оригинала: %s" % config.need_copy)
         file_path.need_copy_to_dst = config.need_copy
 
         try:
+            logger.debug("Попытка обработки в: %s " % config.action.func.__name__)
             action_result: ActionResult = config.action(file_path)
         except Exception as ex:
             # NOTE: FIXME: Общая затычка ошибок, чтоб одна ошибка не руинила цикл
-            print(f"[ERROR] {file_path}) ")
-            print("     ", ex)
+            logger.error("%s: %s" %(file_path, ex) )
+            # print(f"[ERROR] {file_path}) ")
+            # print("     ", ex)
             continue
         
         if not isinstance(action_result, ActionResult):
-            raise TypeError(f"Функция {config.action.func.__name__} вернула неожиданный результат или None")
+            txt_error = f"{file_path}: Функция {config.action.func.__name__} вернула неожиданный результат или None: {action_result}"
+            logger.error(txt_error)
+            raise TypeError(txt_error)
         
-        if action_result.can_remove_source(): # and not need_copy:
+        if action_result.can_remove_source():
             file_path.remove()
-            print(f"!   Удален исходный файл: {file_path}")
+            logger.info(f"Удален исходный файл: %s" % file_path)

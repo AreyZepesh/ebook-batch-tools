@@ -5,9 +5,9 @@ from pathlib import Path
 def make_default_config(_settings: configparser.ConfigParser, ini_path: Path):
     _settings["logging"] = {
         "debug": "False", 
-        "encoding": "", 
-        ";; encoding default: empty": None, 
-        ";; encoding recommendation: utf-8 | utf-8-sig": None, 
+        "encoding": "utf-8-sig", 
+        ";; encoding default: utf-8-sig": None, 
+        ";; encoding recommendation: utf-8 | utf-8-sig | some python file encoding": None, 
         }
     _settings["paths"]= {
         "log_dir": "logs",
@@ -41,5 +41,5 @@ except Exception as ex:
 
 
 DEBUG = _settings.getboolean("logging", "debug", fallback=False)
-ENCODING = _settings.get("logging", "encoding", fallback="") or None 
+ENCODING = _settings.get("logging", "encoding", fallback="utf-8-sig") or None 
 LOG_DIR = BASE_DIR / (_settings.get("paths", "log_dir", fallback="") or "logs")
