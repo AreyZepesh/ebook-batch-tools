@@ -52,16 +52,16 @@ def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[zip
         content = zfile.read(member)
         with open(ext_path, 'rb') as file:
             if content != file.read():
-                logger.warning("Верефикация распакованного файла провалена: %s >>> %s" % (q(member.filename), q(ext_path)))
+                logger.warning("Верефикация распакованного файла провалена: %s >>> %s", q(member.filename), q(ext_path) )
                 return False
-        logger.debug("Верефикация прошла успешно: %s " % q(ext_path))
+        logger.debug("Верефикация прошла успешно: %s ", q(ext_path))
     return True
 
 def _all_extracted_paths_exist(extracted: list[tuple[zipfile.ZipInfo, str]]) -> bool:
     """Проверка существования извлеченного контента"""
     for _, ext_file_path in extracted:
         if not Path(ext_file_path).exists():
-            logger.warning("Распакованный файл не существует: %s" % q(ext_file_path))
+            logger.warning("Распакованный файл не существует: %s", q(ext_file_path))
             return False
     return True
 
@@ -90,10 +90,10 @@ def _extract_archive(file_path: PathMapping,
             return _all_extracted_paths_exist(extracted)
 
     except zipfile.BadZipFile:
-        logger.warning("Битый архив, пропускаем: %s" % q(file_path))
+        logger.warning("Битый архив, пропускаем: %s", q(file_path) )
         return False
-    except Exception as ex:
-        logger.warning("Ошибка при работе с архивом: %s \n %s" % (q(file_path), traceback.format_exc()))
+    except Exception:
+        logger.warning("Ошибка при работе с архивом: %s \n %s", q(file_path), traceback.format_exc() )
         return False
 
 #main
@@ -111,12 +111,12 @@ def zip_extract(file_path: PathMapping,
     dst_path = file_path.dst_path.parent
     if not zip_filename_encoding:
         try:
-            logger.debug("Процесс угадывания кодировки архива %s" % q(file_path))
+            logger.debug("Процесс угадывания кодировки архива %s", q(file_path) )
             zip_filename_encoding = guess_metadata_encoding(file_path)
             if zip_filename_encoding:
-                logger.info("В архиве %s определена/угадана кодировка: %s" % (q(file_path), zip_filename_encoding))
+                logger.info("В архиве %s определена/угадана кодировка: %s", q(file_path), zip_filename_encoding )
         except Exception:
-            logger.warning("Не удалось определить/угадать кодировку в архиве: %s" % q(file_path))
+            logger.warning("Не удалось определить/угадать кодировку в архиве: %s", q(file_path))
     extract_confirmed  = _extract_archive(file_path = file_path,
                                 dst_path = dst_path,
                                 zip_filename_encoding = zip_filename_encoding,

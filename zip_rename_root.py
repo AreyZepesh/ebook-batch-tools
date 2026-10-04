@@ -21,7 +21,7 @@ def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
         # с другой стороны: иногда целевое устройство - очень медленное, 
         # сделать флагом?
             )
-    logger.debug("Создание временного файла архива: %s" % q(temp_path))
+    logger.debug("Создание временного файла архива: %s", q(temp_path) )
     os.close(tmp_fd)  # ZipFile сам откроет путь
     return PathMapping(temp_path)
 
@@ -70,8 +70,7 @@ def _rewrite_archive(
             data = zip_read.read(item.filename)
             # меняем путь к файлу до нового
             item.filename = new_path
-            logger.info("Переименование: %s >>> %s" % (q(item.filename), q(new_path)) )
-            # print(f"    {item.filename} >>> {new_path}")
+            logger.info("Переименование: %s >>> %s", q(old_path), q(new_path) )
             # пишем файл и данные во временный архив
             zip_write.writestr(zinfo_or_arcname = item, data = data)
 
@@ -83,13 +82,11 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
         target_archive_stem = file_path.get_dst_stem()
     # Открываем исходный файл
     with zipfile.ZipFile(file_path, "r") as zip_read:
-        logger.info("Обработка архива: %s" % q(file_path))
-        # print(f"\n{file_path}:")
+        logger.info("Обработка архива: %s", q(file_path) )
         root_item, root_is_dir = _get_single_root_item(zip_read)
         if root_item is None:
             # Если в корне больше одного элемента - возращаем ощибку и завершаем функцию
-            logger.info("Больше одного файла/папки в корне")
-            # print(f"   Больше одного файла/папки в корне")
+            logger.info("Больше одного файла/папки в корне: %s", q(file_path))
             return None
         
         # Делим корневой элемент на имя и расширение. Если это папка - не делим)
@@ -100,8 +97,7 @@ def _prepare_renamed_archive(file_path: PathMapping) -> None|PathMapping|Path:
         
         # Если "Имя файла/папки в корне идентично имени архива" - завершаем функцию
         if root_stem == target_archive_stem:
-            logger.info("Имя файла/папки в корне идентично конечному имени архива: %s" % q(target_archive_stem))
-            # print(f"   Имя файла/папки в корне идентично конечному имени архива: {target_archive_stem}")
+            logger.info("Имя файла/папки в корне идентично конечному имени архива: %s", q(target_archive_stem))
             return file_path
         
         temp_path = _create_temp_zip_near(file_path)
@@ -144,19 +140,19 @@ def rename_single_root_to_archive_name(file_path: PathMapping, **kwargs) -> Acti
             action_result.change_confirmed = dst_path.exists()
 
         if action_result.change_confirmed:
-            logger.info("Измененный архив сохранен: %s" % q(dst_path))
+            logger.info("Измененный архив сохранен: %s", q(dst_path) )
             # print(f"        >>> {dst_path}")
             action_result.safe_to_remove_source = file_path.should_delete_source()
         return action_result
     except zipfile.BadZipFile:
-        logger.warning("Битый архив, пропускаем: %s" % q(file_path))
+        logger.warning("Битый архив, пропускаем: %s", q(file_path) )
         return ActionResult()
-    except Exception as ex:
-        logger.warning("Ошибка с архивом: %s \n %s" % (q(file_path), traceback.format_exc()))
+    except Exception:
+        logger.warning("Ошибка с архивом: %s \n %s", q(file_path), traceback.format_exc() )
         return ActionResult()
     finally:
         # удаляем временный файл, если он вдруг остался в системе
         if temp_path and os.path.exists(temp_path):
             if not file_path.src_is_same(temp_path):
-                    logger.debug("Удаление временного файла: %s" % q(temp_path))
+                    logger.debug("Удаление временного файла: %s", q(temp_path) )
                     os.remove(temp_path)

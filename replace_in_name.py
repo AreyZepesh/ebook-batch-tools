@@ -17,7 +17,7 @@ def apply_name_replacements(
         if find_str in file_path.stem:
             matched = True
             # заменяем слова в конечном пути
-            logger.debug("Замена в названии файла %s: %s на %s" % (q(file_path), find_str, replace_with))
+            logger.debug("Замена в названии файла %s: %s на %s", q(file_path), find_str, replace_with)
             file_path.replace_in_dst_stem(find_str, replace_with)
     return matched
 
@@ -43,7 +43,7 @@ def rename_file(
     dst_path = file_path.dst_path
     if file_path.should_transfer():
         dst_path = file_path.transfer()
-        logger.info("Создание файла с новым именем: %s >>> %s" % (q(file_path), q(dst_path)))
+        logger.info("Создание файла с новым именем: %s >>> %s", q(file_path), q(dst_path) )
         rename_confirmed = dst_path.exists()
 
     return ActionResult(change_confirmed=rename_confirmed, 

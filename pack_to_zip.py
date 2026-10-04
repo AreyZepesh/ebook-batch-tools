@@ -13,16 +13,16 @@ def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
     with zipfile.ZipFile(zip_path, 'r') as zfile:
         members_list = zfile.infolist()
         if len(members_list) != 1:
-            logger.warning("Верефикация упакованного файла провалена: больше одного файла в архиве: %s" % q(zip_path))
+            logger.warning("Верефикация упакованного файла провалена: больше одного файла в архиве: %s", q(zip_path) )
             return False
         
         member = members_list[0]
         content = zfile.read(member)
         with open(src_file, 'rb') as file:
             if content != file.read():
-                logger.warning("Верефикация упакованного файла провалена: несоответствие: %s >>> %s" % (q(member.filename), q(src_file)))
+                logger.warning("Верефикация упакованного файла провалена: несоответствие: %s >>> %s", q(member.filename), q(src_file) )
                 return False
-    logger.debug("Верефикация прошла успешно: %s " % q(zip_path))
+    logger.debug("Верефикация прошла успешно: %s ", q(zip_path))
     return True
 
 def _pack_archive(file_path: PathMapping, 
@@ -33,11 +33,11 @@ def _pack_archive(file_path: PathMapping,
     (в данном случае файлы существуют или верифицированы)"""
     try:
         with zipfile.ZipFile(dst_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
-            logger.debug("Упаковываем в архив: %s" % q(dst_path))
+            logger.debug("Упаковываем в архив: %s", q(dst_path))
             zip_file.write(filename = file_path, arcname = file_path.name)
 
     except Exception:
-        logger.warning("ERROR: какая то ошибка при упаковке: %s в %s \n%s", (q(file_path), q(dst_path), traceback.format_exc()))
+        logger.warning("ERROR: какая то ошибка при упаковке: %s в %s \n%s", q(file_path), q(dst_path), traceback.format_exc() )
         return False
 
     if verify_packed:
@@ -68,7 +68,7 @@ def pack_to_zip(file_path: PathMapping,
                                 verify_packed = verify_packed)
     
     if pack_confirmed:
-        logger.info("Успешно запаковано: %s >>> %s" % (q(file_path), q(dst_path)))
+        logger.info("Успешно запаковано: %s >>> %s", q(file_path), q(dst_path) )
 
     return ActionResult(change_confirmed=pack_confirmed, safe_to_remove_source=file_path.should_delete_source())
 
