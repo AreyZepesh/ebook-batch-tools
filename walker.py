@@ -31,7 +31,7 @@ def walk_and_edit(config: Config) -> None:
         file_path.need_copy_to_dst = config.need_copy
 
         try:
-            logger.debug("Попытка обработки в: %s " % config.action.func.__name__)
+            logger.debug("Попытка обработки в: %s " % q(config.action.func.__name__))
             action_result: ActionResult = config.action(file_path)
         except Exception as ex:
             # NOTE: FIXME: Общая затычка ошибок, чтоб одна ошибка не руинила цикл
@@ -45,6 +45,10 @@ def walk_and_edit(config: Config) -> None:
             logger.error(txt_error)
             raise TypeError(txt_error)
         
+        logger.debug("action_result: change_confirmed = %s, safe_to_remove_source = %s" % (action_result.change_confirmed, action_result.safe_to_remove_source))
+
         if action_result.can_remove_source():
             file_path.remove()
             logger.info("Удален исходный файл: %s" % q(file_path))
+        
+        print() # декаратив для терминала

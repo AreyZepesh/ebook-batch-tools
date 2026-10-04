@@ -6,8 +6,8 @@ from zip_extract import zip_extract
 from pack_to_zip import pack_to_zip
 
 def make_replace_in_name(
-        accept_ext: tuple = (".fb2", ".epub", ".pdf", ".zip",),
-        find_what: str = ".fb2",
+        accept_ext: tuple|list = (".fb2", ".epub", ".pdf", ".zip",),
+        find_what: tuple|list = (".fb2",),
         replace_with: str = "",
         **kwargs):
     return Action(
@@ -25,7 +25,7 @@ def make_zip_rename_root(**kwargs):
             )
 
 def make_zip_rename_name_and_root(
-        find_what: str = ".fb2",
+        find_what: tuple|list = (".fb2",),
         replace_with: str = "",
         **kwargs):
     return Action(
@@ -49,7 +49,7 @@ def make_zip_extract(
                       verify_extracted = verify_extracted )
             )
 
-def make_pack_to_zip(accept_ext: tuple = (".fb2",),
+def make_pack_to_zip(accept_ext: tuple|list = (".fb2",),
                             verify_packed: bool = False,
                             save_suffix_in_name: bool = False, 
                             **kwargs):

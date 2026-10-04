@@ -22,6 +22,7 @@ def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:
             if content != file.read():
                 logger.warning("Верефикация упакованного файла провалена: несоответствие: %s >>> %s" % (q(member.filename), q(src_file)))
                 return False
+    logger.debug("Верефикация прошла успешно: %s " % q(zip_path))
     return True
 
 def _pack_archive(file_path: PathMapping, 

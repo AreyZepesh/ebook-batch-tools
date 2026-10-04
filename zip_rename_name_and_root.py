@@ -5,7 +5,7 @@ from zip_rename_root import rename_single_root_to_archive_name
 
 #main
 def rename_and_sync_root(file_path: PathMapping,
-                find_what: list[str],
+                find_what: tuple[str]|list[str],
                 replace_with: str = "",
                 **kwargs) -> ActionResult:
     """Сперва меняем имя архива, после и имя файла/папки в нем, сохраняем"""

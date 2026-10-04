@@ -5,6 +5,9 @@ from pathlib import Path
 from path_mapping import PathMapping
 from action_result import ActionResult
 
+from logger import setup_logging, q
+logger = setup_logging()
+
 def guess_metadata_encoding(path, candidates=("cp437", "cp866", "cp1251", "gbk", "shift_jis")):
     with zipfile.ZipFile(path) as zf:
         raws = []
@@ -49,14 +52,16 @@ def _verify_extracted_contents(zfile: zipfile.ZipFile, extracted: list[tuple[zip
         content = zfile.read(member)
         with open(ext_path, 'rb') as file:
             if content != file.read():
-                print(f'! Ошибка: {member.filename} >>> {ext_path}')
+                logger.warning("Верефикация распакованного файла провалена: %s >>> %s" % (q(member.filename), q(ext_path)))
                 return False
+        logger.debug("Верефикация прошла успешно: %s " % q(ext_path))
     return True
 
 def _all_extracted_paths_exist(extracted: list[tuple[zipfile.ZipInfo, str]]) -> bool:
     """Проверка существования извлеченного контента"""
     for _, ext_file_path in extracted:
         if not Path(ext_file_path).exists():
+            logger.warning("Распакованный файл не существует: %s" % q(ext_file_path))
             return False
     return True
 
@@ -72,24 +77,23 @@ def _extract_archive(file_path: PathMapping,
         with zipfile.ZipFile(file_path, 'r',
                              metadata_encoding=zip_filename_encoding,
                             ) as zfile:
-            print(f"Извлечено из: {file_path}")
-            # print(f" в {dst_path}")
+            message = f"Извлечено из: {q(file_path)}"
 
             for member in zfile.infolist():
                 ext_path = zfile.extract(member, dst_path)
                 extracted.append( (member, ext_path) )
-                print(f"  {member.filename} >>> {ext_path}")
+                message += f"\n    {q(member.filename)} >>> {q(ext_path)}"
 
+            logger.info(message)
             if verify_extracted:
                 return _verify_extracted_contents(zfile, extracted)
             return _all_extracted_paths_exist(extracted)
 
     except zipfile.BadZipFile:
-        print(f"ERROR: Битый архив, пропускаем: {file_path}")
+        logger.warning("Битый архив, пропускаем: %s" % q(file_path))
         return False
     except Exception as ex:
-        print(f"ERROR: какая то ошибка при работе с архивом: {file_path}")
-        print(f"{traceback.format_exc()}")
+        logger.warning("Ошибка при работе с архивом: %s \n %s" % (q(file_path), traceback.format_exc()))
         return False
 
 #main
@@ -107,11 +111,12 @@ def zip_extract(file_path: PathMapping,
     dst_path = file_path.dst_path.parent
     if not zip_filename_encoding:
         try:
+            logger.debug("Процесс угадывания кодировки архива %s" % q(file_path))
             zip_filename_encoding = guess_metadata_encoding(file_path)
             if zip_filename_encoding:
-                print(f"[INFO] в архиве {file_path} определена/угадана кодировка: {zip_filename_encoding}")
+                logger.info("В архиве %s определена/угадана кодировка: %s" % (q(file_path), zip_filename_encoding))
         except Exception:
-            print(f"[WARNING] не удалось определить/угадать кодировку в архиве {file_path}")
+            logger.warning("Не удалось определить/угадать кодировку в архиве: %s" % q(file_path))
     extract_confirmed  = _extract_archive(file_path = file_path,
                                 dst_path = dst_path,
                                 zip_filename_encoding = zip_filename_encoding,

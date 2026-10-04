@@ -1,9 +1,12 @@
 from path_mapping import PathMapping
 from action_result import ActionResult
 
+from logger import setup_logging, q
+logger = setup_logging()
+
 def apply_name_replacements(
     file_path: PathMapping,
-    find_what: list[str],
+    find_what: tuple[str]|list[str],
     replace_with: str = ""):
     """Заменяем искомое в пути \n
     Apply configured stem replacements to dst_path."""
@@ -14,13 +17,14 @@ def apply_name_replacements(
         if find_str in file_path.stem:
             matched = True
             # заменяем слова в конечном пути
+            logger.debug("Замена в названии файла %s: %s на %s" % (q(file_path), find_str, replace_with))
             file_path.replace_in_dst_stem(find_str, replace_with)
     return matched
 
 #main
 def rename_file(
         file_path: PathMapping, 
-        find_what: list[str], 
+        find_what: tuple[str]|list[str], 
         replace_with: str = "",  
         **kwargs) -> ActionResult:
     """Переименовывает файл, заменяя одно на другое, \n
@@ -39,7 +43,7 @@ def rename_file(
     dst_path = file_path.dst_path
     if file_path.should_transfer():
         dst_path = file_path.transfer()
-        print(f"{file_path} >>> {dst_path}")
+        logger.info("Создание файла с новым именем: %s >>> %s" % (q(file_path), q(dst_path)))
         rename_confirmed = dst_path.exists()
 
     return ActionResult(change_confirmed=rename_confirmed, 
