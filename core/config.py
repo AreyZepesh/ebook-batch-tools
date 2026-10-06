@@ -1,8 +1,8 @@
 ﻿from dataclasses import dataclass, field
 from typing import Callable
 
-from path_mapping import PathMapping
-from action_result import ActionResult
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
 
 @dataclass
 class Action:
@@ -25,6 +25,8 @@ class Config:
         if name == 'input_dir':
             if value is None:
                 raise ValueError("Не указан путь до начальной директории")
+            if len(value) == 2 and value[-1] == ":":
+                value += "/"
             value = PathMapping(value).resolve()
             if not value.exists():
                 raise ValueError("Путь до начальной директории не существует")

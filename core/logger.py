@@ -1,6 +1,6 @@
 ﻿import logging
 from logging.handlers import TimedRotatingFileHandler
-from app_settings import LOG_DIR, DEBUG, ENCODING
+from core.app_settings import LOG_DIR, DEBUG, ENCODING
 
 def setup_logging(name_log: str = "book_utils") -> logging.Logger:
     if not LOG_DIR.exists():
