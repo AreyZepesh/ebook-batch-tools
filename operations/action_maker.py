@@ -1,9 +1,9 @@
-﻿from config import Action
-from replace_in_name import rename_file
-from zip_rename_root import rename_single_root_to_archive_name
-from zip_rename_name_and_root import rename_and_sync_root
-from zip_extract import zip_extract
-from pack_to_zip import pack_to_zip
+﻿from core.config import Action
+from operations.replace_in_name import rename_file
+from operations.zip_rename_root import rename_single_root_to_archive_name
+from operations.zip_rename_name_and_root import rename_and_sync_root
+from operations.zip_extract import zip_extract
+from operations.pack_to_zip import pack_to_zip
 
 def make_replace_in_name(
         accept_ext: tuple|list = (".fb2", ".epub", ".pdf", ".zip",),

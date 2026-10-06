@@ -2,10 +2,10 @@ import zipfile
 import traceback
 from pathlib import Path
 
-from path_mapping import PathMapping
-from action_result import ActionResult
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
 
-from logger import setup_logging, q
+from core.logger import setup_logging, q
 logger = setup_logging()
 
 def _verify_packed_file(zip_path: Path, src_file: PathMapping) -> bool:

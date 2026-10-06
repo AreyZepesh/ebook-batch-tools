@@ -2,10 +2,10 @@ import zipfile
 import traceback
 from pathlib import Path
 
-from path_mapping import PathMapping
-from action_result import ActionResult
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
 
-from logger import setup_logging, q
+from core.logger import setup_logging, q
 logger = setup_logging()
 
 def guess_metadata_encoding(path, candidates=("cp437", "cp866", "cp1251", "gbk", "shift_jis")):

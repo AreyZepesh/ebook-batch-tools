@@ -1,7 +1,7 @@
-from path_mapping import PathMapping
-from action_result import ActionResult
-from replace_in_name import apply_name_replacements
-from zip_rename_root import rename_single_root_to_archive_name
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
+from operations.replace_in_name import apply_name_replacements
+from operations.zip_rename_root import rename_single_root_to_archive_name
 
 #main
 def rename_and_sync_root(file_path: PathMapping,

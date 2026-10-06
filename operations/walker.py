@@ -1,9 +1,9 @@
 import traceback
-from config import Config
-from path_mapping import PathMapping
-from action_result import ActionResult
+from core.config import Config
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
 
-from logger import setup_logging, q
+from core.logger import setup_logging, q
 logger = setup_logging()
 
 def walk_and_edit(config: Config) -> None:

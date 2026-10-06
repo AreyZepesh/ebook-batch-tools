@@ -4,10 +4,10 @@ import traceback
 import tempfile
 from pathlib import Path
 
-from path_mapping import PathMapping
-from action_result import ActionResult
+from core.path_mapping import PathMapping
+from core.action_result import ActionResult
 
-from logger import setup_logging, q
+from core.logger import setup_logging, q
 logger = setup_logging()
 
 def _create_temp_zip_near(file_path: PathMapping) -> PathMapping:
