@@ -4,6 +4,8 @@ from typing import Callable
 from core.path_mapping import PathMapping
 from core.action_result import ActionResult
 
+from core.safe_path import get_safe_path
+
 @dataclass
 class Action:
     """Что выполнять на каждом подходящем файле — функция и её аргументы вместе."""
@@ -21,20 +23,22 @@ class Config:
     need_copy: bool = field(default=True)
     action: Action | None = field(default=None)
 
+    @staticmethod
+    def _resolve_dir(value) -> PathMapping:
+        return PathMapping(get_safe_path(value)).resolve()
+    
     def __setattr__(self, name, value):
         if name == 'input_dir':
             if value is None:
                 raise ValueError("Не указан путь до начальной директории")
-            if len(value) == 2 and value[-1] == ":":
-                value += "/"
-            value = PathMapping(value).resolve()
+            value = self._resolve_dir(value)
             if not value.exists():
                 raise ValueError("Путь до начальной директории не существует")
             if not value.is_dir():
                 raise ValueError("Путь до начальной директории — не папка")
         if name == 'output_dir':
             if value is not None:
-                value = PathMapping(value).resolve()
+                value = self._resolve_dir(value)
         super().__setattr__(name, value)
 
 

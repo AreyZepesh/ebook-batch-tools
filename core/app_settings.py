@@ -2,6 +2,8 @@
 import configparser
 from pathlib import Path
 
+import __main__
+
 def make_default_config(_settings: configparser.ConfigParser, ini_path: Path):
     _settings["logging"] = {
         "debug": "False", 
@@ -19,7 +21,7 @@ def make_default_config(_settings: configparser.ConfigParser, ini_path: Path):
 if getattr(sys, "frozen", False):
     BASE_DIR = Path(sys.executable).resolve().parent
 else:
-    BASE_DIR = Path(__file__).resolve().parent
+    BASE_DIR = Path(__main__.__file__).resolve().parent
 
 INI_PATH = BASE_DIR / "settings.ini"
 
