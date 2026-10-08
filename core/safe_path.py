@@ -9,8 +9,9 @@ _RESERVED = {"CON", "PRN", "AUX", "NUL",
              *(f"COM{i}" for i in range(1, 10)),
              *(f"LPT{i}" for i in range(1, 10))}
 
-def safe_name(filename: str, max_bytes: int = 255) -> str:
-    stem, ext = os.path.splitext(filename)
+def get_safe_name(filename: str, max_bytes: int = 255, is_stem: bool = False) -> str:
+    logger.debug("Принято имя: %s", q(filename) )
+    stem, ext = os.path.splitext(filename) if not is_stem else (filename, "")
     stem = _BAD_CHARS.sub("_", stem).rstrip(" .")
     if ext:
         ext = _BAD_CHARS.sub("", ext).rstrip(" .")
@@ -18,12 +19,14 @@ def safe_name(filename: str, max_bytes: int = 255) -> str:
             ext = "._"
 
     if stem.split(".")[0].rstrip(" ").upper() in _RESERVED:
+        logger.debug("Обноружено запрещенное в Windows имя, безопасное имя: %s", q(stem.split(".")[0]) )
         stem = "_" + stem
 
     if sys.platform != "win32":
         limit = max_bytes - len(ext.encode("utf-8"))
         stem = stem.encode("utf-8")[:limit].decode("utf-8", errors="ignore")
     filename = stem + ext
+    logger.debug("Преобразованное, безопасное имя: %s", q(filename) )
     return filename.rstrip(" .") or "_"
 
 
@@ -54,7 +57,7 @@ def get_safe_path(path: str | Path) -> Path:
     logger.debug("Относительный путь, еще не существубщий на диске: %s", q(rel))
     safe_parts = [base]
     for part in rel.parts:
-        safe_parts.append(safe_name(part))
+        safe_parts.append(get_safe_name(part))
     safe_path = Path(*safe_parts)
     logger.debug("Преобразованный, безопасный путь: %s", q(safe_path) )
     return safe_path

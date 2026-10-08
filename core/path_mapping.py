@@ -2,6 +2,8 @@
 from pathlib import Path
 from datetime import datetime as dt
 
+from core.safe_path import get_safe_name
+
 class PathMapping(Path):
     def __init__(self, *args):
         super().__init__(*args)
@@ -19,13 +21,14 @@ class PathMapping(Path):
 
     def replace_in_dst_stem(self, find_what: str, replace_with: str):
         """replace in dst_path.stem"""
+        new_stem = self._dst_path.stem.replace(find_what, replace_with)
         self._dst_path = self._dst_path.with_stem(
-            self._dst_path.stem.replace(find_what, replace_with)
-            )
+            get_safe_name(new_stem, is_stem=True)
+                )
         self._dst_resolved = False
     
     def set_dst_stem(self, new_stem):
-        self._dst_path = self._dst_path.with_stem(new_stem)
+        self._dst_path = self._dst_path.with_stem(get_safe_name(new_stem, is_stem=True))
         self._dst_resolved = False
         return self._dst_path
         
